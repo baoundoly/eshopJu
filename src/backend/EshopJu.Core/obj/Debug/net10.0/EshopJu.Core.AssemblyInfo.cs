@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EshopJu.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+864765c2153ee12c419db7f78dc4de39ca9d9740")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2147f084a58dbed41aadaa5cfaa134c8eb9454b6")]
 [assembly: System.Reflection.AssemblyProductAttribute("EshopJu.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EshopJu.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
