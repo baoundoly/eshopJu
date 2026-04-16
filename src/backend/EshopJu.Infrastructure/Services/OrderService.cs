@@ -99,12 +99,31 @@ public class OrderService : IOrderService
 
         foreach (var itemDto in dto.Items)
         {
-            var product = await _context.Products.FindAsync(itemDto.ProductId)
+            var product = await _context.Products
+                .Include(p => p.Sizes)
+                .FirstOrDefaultAsync(p => p.Id == itemDto.ProductId)
                 ?? throw new InvalidOperationException($"Product {itemDto.ProductId} not found.");
 
+            // Validate total product stock
             if (product.StockQuantity < itemDto.Quantity)
                 throw new InvalidOperationException(
                     $"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}.");
+
+            // Validate size-specific stock when sizes are defined
+            if (product.Sizes.Any())
+            {
+                var sizeStock = product.Sizes.FirstOrDefault(s => s.Size == itemDto.Size);
+                if (sizeStock == null)
+                    throw new InvalidOperationException(
+                        $"Size '{itemDto.Size}' is not available for product '{product.Name}'.");
+
+                if (sizeStock.StockQuantity < itemDto.Quantity)
+                    throw new InvalidOperationException(
+                        $"Insufficient stock for '{product.Name}' in size '{itemDto.Size}'. Available: {sizeStock.StockQuantity}.");
+
+                sizeStock.StockQuantity -= itemDto.Quantity;
+                sizeStock.UpdatedAt = DateTime.UtcNow;
+            }
 
             var unitPrice = product.DiscountPrice ?? product.Price;
             var totalPrice = unitPrice * itemDto.Quantity;
@@ -268,11 +287,10 @@ public class OrderService : IOrderService
     private async Task<string> GenerateOrderNumberAsync()
     {
         var datePart = DateTime.UtcNow.ToString("yyyyMMdd");
-        var random = new Random();
         string orderNumber;
         do
         {
-            var suffix = random.Next(1000, 9999).ToString();
+            var suffix = Random.Shared.Next(1000, 9999).ToString();
             orderNumber = $"ORD-{datePart}-{suffix}";
         }
         while (await _context.Orders.AnyAsync(o => o.OrderNumber == orderNumber));

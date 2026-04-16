@@ -1,0 +1,16 @@
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/bin/Debug/net10.0/EshopJu.Application.deps.json
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/bin/Debug/net10.0/EshopJu.Application.dll
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/bin/Debug/net10.0/EshopJu.Application.pdb
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/bin/Debug/net10.0/EshopJu.Core.dll
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/bin/Debug/net10.0/EshopJu.Core.pdb
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu.Application.csproj.AssemblyReference.cache
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu.Application.GeneratedMSBuildEditorConfig.editorconfig
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu.Application.AssemblyInfoInputs.cache
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu.Application.AssemblyInfo.cs
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu.Application.csproj.CoreCompileInputs.cache
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu.Application.sourcelink.json
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu..F698CA5D.Up2Date
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu.Application.dll
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/refint/EshopJu.Application.dll
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/EshopJu.Application.pdb
+/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.Application/obj/Debug/net10.0/ref/EshopJu.Application.dll

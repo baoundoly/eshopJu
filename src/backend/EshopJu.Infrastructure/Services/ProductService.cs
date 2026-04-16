@@ -1,6 +1,7 @@
 using EshopJu.Application.DTOs;
 using EshopJu.Application.Interfaces;
 using EshopJu.Core.Entities;
+using EshopJu.Infrastructure.Helpers;
 using EshopJu.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -273,17 +274,5 @@ public class ProductService : IProductService
         };
     }
 
-    private static string GenerateSlug(string name)
-    {
-        return name.ToLowerInvariant()
-            .Replace(" ", "-")
-            .Replace("'", "")
-            .Replace("\"", "")
-            .Replace(".", "")
-            .Replace(",", "")
-            .Replace("/", "-")
-            .Replace("\\", "-")
-            .Replace("(", "")
-            .Replace(")", "");
-    }
+    private static string GenerateSlug(string name) => SlugHelper.GenerateSlug(name);
 }

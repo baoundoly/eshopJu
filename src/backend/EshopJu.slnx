@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EshopJu.API/EshopJu.API.csproj" />
+  <Project Path="EshopJu.Application/EshopJu.Application.csproj" />
+  <Project Path="EshopJu.Core/EshopJu.Core.csproj" />
+  <Project Path="EshopJu.Infrastructure/EshopJu.Infrastructure.csproj" />
+</Solution>
