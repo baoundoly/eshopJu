@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.npm
+
+# Next.js
+src/frontend/.next/
+src/frontend/out/
+src/frontend/.vercel
+
+# .NET Build artifacts
+**/bin/
+**/obj/
+*.user
+*.suo
+.vs/
+
+# Environment files
+.env
+.env.local
+.env.production
+src/frontend/.env.local
+src/frontend/.env.production
+
+# Docker volumes
+postgres_data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test results
+TestResults/
+coverage/

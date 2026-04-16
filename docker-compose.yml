@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: eshopju-db
+    environment:
+      POSTGRES_DB: eshopju
+      POSTGRES_USER: eshopju
+      POSTGRES_PASSWORD: eshopju_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: EshopJu.API/Dockerfile
+    container_name: eshopju-api
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=db;Database=eshopju;Username=eshopju;Password=eshopju_pass
+      - Jwt__Secret=eshopju-super-secret-key-2024-change-in-production-must-be-32chars
+      - WhatsApp__PhoneNumber=8801XXXXXXXXX
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: eshopju-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
+      - NEXT_PUBLIC_WHATSAPP_NUMBER=8801XXXXXXXXX
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

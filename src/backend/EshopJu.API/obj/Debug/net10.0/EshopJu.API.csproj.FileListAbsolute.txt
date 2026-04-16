@@ -15,7 +15,6 @@
 /home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.API/bin/Debug/net10.0/EshopJu.API.runtimeconfig.json
 /home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.API/bin/Debug/net10.0/EshopJu.API.dll
 /home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.API/bin/Debug/net10.0/EshopJu.API.pdb
-/home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.API/bin/Debug/net10.0/AutoMapper.dll
 /home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.API/bin/Debug/net10.0/Azure.Core.dll
 /home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.API/bin/Debug/net10.0/Azure.Identity.dll
 /home/runner/work/eshopJu/eshopJu/src/backend/EshopJu.API/bin/Debug/net10.0/BCrypt.Net-Next.dll
