@@ -63,7 +63,7 @@ export default function Header() {
                     <div className="hidden md:flex items-center gap-2">
                       {user.role === 'admin' && (
                         <Link href="/admin/dashboard" className="text-sm font-semibold text-rose-400 hover:text-rose-300 transition-colors">
-                          Admin
+                          Admin Panel
                         </Link>
                       )}
                       <button
@@ -75,13 +75,15 @@ export default function Header() {
                       </button>
                     </div>
                   ) : (
-                    <Link
-                      href="/login"
-                      className="hidden md:flex items-center gap-1 text-sm font-semibold text-gray-300 hover:text-white transition-colors"
-                    >
-                      <User size={16} />
-                      Login
-                    </Link>
+                    <div className="hidden md:flex items-center gap-2">
+                      <Link
+                        href="/login"
+                        className="flex items-center gap-1 text-sm font-semibold text-gray-300 hover:text-white transition-colors"
+                      >
+                        <User size={16} />
+                        Login
+                      </Link>
+                    </div>
                   )}
 
                   {/* Mobile hamburger */}
