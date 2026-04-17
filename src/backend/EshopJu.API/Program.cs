@@ -10,9 +10,20 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var dbProvider = builder.Configuration["DatabaseProvider"] ?? "MySql";
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+{
+    if (dbProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+    {
+        var connStr = builder.Configuration.GetConnectionString("SqlServerConnection");
+        options.UseSqlServer(connStr);
+    }
+    else
+    {
+        var connStr = builder.Configuration.GetConnectionString("MySqlConnection");
+        options.UseMySql(connStr, ServerVersion.AutoDetect(connStr));
+    }
+});
 
 // Services
 builder.Services.AddScoped<IProductService, ProductService>();
