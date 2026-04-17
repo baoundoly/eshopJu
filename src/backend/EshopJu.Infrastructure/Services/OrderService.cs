@@ -177,6 +177,26 @@ public class OrderService : IOrderService
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
+        // Record stock-out movements in the ledger
+        foreach (var item in order.Items)
+        {
+            if (item.VariantId.HasValue)
+            {
+                _context.StockMovements.Add(new StockMovement
+                {
+                    ProductVariantId = item.VariantId.Value,
+                    Quantity = -item.Quantity,
+                    MovementType = StockMovementType.Out,
+                    ReferenceType = "Order",
+                    ReferenceId = order.Id,
+                    Notes = $"Order {order.OrderNumber}",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+        }
+        await _context.SaveChangesAsync();
+
         return MapToDto(order);
     }
 

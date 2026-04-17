@@ -18,6 +18,10 @@ public class AppDbContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<StockIn> StockIns => Set<StockIn>();
+    public DbSet<StockInItem> StockInItems => Set<StockInItem>();
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,6 +63,11 @@ public class AppDbContext : DbContext
             entity.HasIndex(c => c.Slug).IsUnique();
         });
 
+        modelBuilder.Entity<StockInItem>(entity =>
+        {
+            entity.Property(i => i.PurchasePrice).HasColumnType("decimal(18,2)");
+        });
+
         // Seed data
         SeedData(modelBuilder);
     }
@@ -84,32 +93,31 @@ public class AppDbContext : DbContext
             new Product { Id = 7, Name = "Football Socks", Slug = "football-socks", Team = null, Description = "Anti-blister football socks, pair", Price = 200, StockQuantity = 200, IsFeatured = false, IsActive = true, CategoryId = 4, Color = "White", JerseyType = JerseyType.NotApplicable, CreatedAt = now, UpdatedAt = now }
         );
 
-        // Variants for jerseys (color + type + size combinations)
         modelBuilder.Entity<ProductVariant>().HasData(
             // Argentina Home
-            new ProductVariant { Id = 1, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "S",   StockQuantity = 10, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 2, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "M",   StockQuantity = 15, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 3, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "L",   StockQuantity = 15, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 4, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "XL",  StockQuantity = 10, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 1, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "S",   StockQuantity = 10, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 2, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "M",   StockQuantity = 15, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 3, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "L",   StockQuantity = 15, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 4, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "XL",  StockQuantity = 10, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
             // Brazil Away
-            new ProductVariant { Id = 5, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "S",   StockQuantity = 5, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 6, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "M",   StockQuantity = 10, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 7, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "L",   StockQuantity = 10, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 8, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "XL",  StockQuantity = 5,  CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 5, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "S",   StockQuantity = 5, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 6, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "M",   StockQuantity = 10, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 7, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "L",   StockQuantity = 10, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 8, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "XL",  StockQuantity = 5,  LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
             // Real Madrid Home
-            new ProductVariant { Id = 9,  ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "S",  StockQuantity = 5, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 10, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "M",  StockQuantity = 8, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 11, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "L",  StockQuantity = 8, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 12, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "XL", StockQuantity = 4, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 9,  ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "S",  StockQuantity = 5, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 10, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "M",  StockQuantity = 8, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 11, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "L",  StockQuantity = 8, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 12, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "XL", StockQuantity = 4, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
             // Barcelona Away
-            new ProductVariant { Id = 13, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "S",  StockQuantity = 4, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 14, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "M",  StockQuantity = 6, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 15, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "L",  StockQuantity = 6, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 16, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "XL", StockQuantity = 4, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 13, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "S",  StockQuantity = 4, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 14, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "M",  StockQuantity = 6, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 15, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "L",  StockQuantity = 6, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 16, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "XL", StockQuantity = 4, LowStockThreshold = 5, CreatedAt = now, UpdatedAt = now },
             // Accessories - one size fits all / one variant per product
-            new ProductVariant { Id = 17, ProductId = 5, Color = "Black",  JerseyType = JerseyType.NotApplicable, Size = "One Size", StockQuantity = 100, CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 18, ProductId = 6, Color = "White",  JerseyType = JerseyType.NotApplicable, Size = "Size 5",   StockQuantity = 60,  CreatedAt = now, UpdatedAt = now },
-            new ProductVariant { Id = 19, ProductId = 7, Color = "White",  JerseyType = JerseyType.NotApplicable, Size = "One Size", StockQuantity = 200, CreatedAt = now, UpdatedAt = now }
+            new ProductVariant { Id = 17, ProductId = 5, Color = "Black",  JerseyType = JerseyType.NotApplicable, Size = "One Size", StockQuantity = 100, LowStockThreshold = 10, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 18, ProductId = 6, Color = "White",  JerseyType = JerseyType.NotApplicable, Size = "Size 5",   StockQuantity = 60,  LowStockThreshold = 10, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 19, ProductId = 7, Color = "White",  JerseyType = JerseyType.NotApplicable, Size = "One Size", StockQuantity = 200, LowStockThreshold = 10, CreatedAt = now, UpdatedAt = now }
         );
     }
 }

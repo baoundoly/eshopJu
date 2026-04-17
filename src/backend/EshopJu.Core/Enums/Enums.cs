@@ -37,3 +37,11 @@ public enum JerseyType
     Away = 2,
     Third = 3
 }
+
+public enum StockMovementType
+{
+    In = 0,
+    Out = 1,
+    Adjustment = 2,
+    Return = 3
+}
