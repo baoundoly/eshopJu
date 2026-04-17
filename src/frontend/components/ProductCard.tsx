@@ -21,19 +21,28 @@ export default function ProductCard({ product }: Props) {
 
   const price = product.discountPrice ?? product.price;
   const hasDiscount = product.discountPrice && product.discountPrice < product.price;
-  const imageUrl = product.images?.[0] || PLACEHOLDER;
-  const inStockSizes = product.sizes.filter((s) => s.stock > 0);
+  const imageUrl = product.images?.[0] || product.primaryImage || PLACEHOLDER;
+  const inStockVariants = product.variants?.filter((v) => v.stockQuantity > 0) ?? [];
+  const totalStock = product.totalStock ?? 0;
 
   const handleAddToCart = async () => {
-    if (inStockSizes.length === 0) {
+    if (inStockVariants.length === 0) {
       toast.error('Out of stock');
       return;
     }
     const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || undefined : undefined;
     setAdding(true);
     try {
+      const firstVariant = inStockVariants[0];
       const cart = await addToCart(
-        { productId: product._id, size: inStockSizes[0].size, quantity: 1 },
+        {
+          productId: product.id,
+          variantId: firstVariant.id,
+          size: firstVariant.size,
+          color: firstVariant.color,
+          jerseyType: firstVariant.jerseyType,
+          quantity: 1,
+        },
         sessionId ?? undefined,
       );
       setCart(cart);
@@ -49,6 +58,9 @@ export default function ProductCard({ product }: Props) {
     `Hi! I'm interested in ${product.name}. Price: ৳${price}`,
   );
   const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '8801XXXXXXXXX';
+
+  // Distinct sizes from in-stock variants
+  const availableSizes = [...new Set(inStockVariants.map((v) => v.size))].slice(0, 5);
 
   return (
     <div className="group bg-gray-900 rounded-2xl overflow-hidden border border-gray-800 hover:border-rose-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-rose-500/10 flex flex-col">
@@ -67,10 +79,16 @@ export default function ProductCard({ product }: Props) {
             SALE
           </span>
         )}
-        {inStockSizes.length === 0 && (
+        {totalStock === 0 && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
             <span className="text-white font-bold text-sm">OUT OF STOCK</span>
           </div>
+        )}
+        {/* Jersey type badge */}
+        {product.jerseyType && product.jerseyType !== 'notApplicable' && (
+          <span className="absolute top-2 right-2 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded-full capitalize">
+            {product.jerseyType}
+          </span>
         )}
       </Link>
 
@@ -86,11 +104,11 @@ export default function ProductCard({ product }: Props) {
         </div>
 
         {/* Sizes */}
-        {inStockSizes.length > 0 && (
+        {availableSizes.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {inStockSizes.slice(0, 5).map((s) => (
-              <span key={s.size} className="text-xs bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded">
-                {s.size}
+            {availableSizes.map((s) => (
+              <span key={s} className="text-xs bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded">
+                {s}
               </span>
             ))}
           </div>
@@ -108,7 +126,7 @@ export default function ProductCard({ product }: Props) {
         <div className="flex gap-2 mt-1">
           <button
             onClick={handleAddToCart}
-            disabled={adding || inStockSizes.length === 0}
+            disabled={adding || totalStock === 0}
             className="flex-1 flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-lg transition-colors"
           >
             <ShoppingCart size={14} />

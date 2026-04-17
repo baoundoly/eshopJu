@@ -8,12 +8,26 @@ import { getProducts, getCategories } from '@/lib/api';
 import type { Product, Category, PaginatedProducts } from '@/lib/types';
 
 const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+const JERSEY_TYPES = ['home', 'away', 'third'];
+const COMMON_COLORS = ['white', 'black', 'red', 'blue', 'sky blue', 'green', 'yellow', 'gold', 'navy'];
 const SORTS = [
-  { value: '-createdAt', label: 'Newest' },
-  { value: 'price', label: 'Price: Low to High' },
-  { value: '-price', label: 'Price: High to Low' },
-  { value: '-sold', label: 'Most Popular' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: 'popular', label: 'Most Popular' },
 ];
+
+const COLOR_BG: Record<string, string> = {
+  white: '#ffffff',
+  black: '#000000',
+  red: '#ef4444',
+  blue: '#3b82f6',
+  'sky blue': '#0ea5e9',
+  green: '#22c55e',
+  yellow: '#eab308',
+  gold: '#f59e0b',
+  navy: '#1e3a5f',
+};
 
 export default function ProductsContent() {
   const searchParams = useSearchParams();
@@ -22,34 +36,44 @@ export default function ProductsContent() {
   const [loading, setLoading] = useState(true);
   const [showFilter, setShowFilter] = useState(false);
 
-  const [category, setCategory] = useState(searchParams.get('category') || '');
+  const [categoryId, setCategoryId] = useState<number | ''>('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [size, setSize] = useState('');
   const [team, setTeam] = useState('');
-  const [sort, setSort] = useState('-createdAt');
+  const [color, setColor] = useState('');
+  const [jerseyType, setJerseyType] = useState('');
+  const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1);
+
+  // Pre-populate category from query string (e.g. ?category=club)
+  useEffect(() => {
+    const catParam = searchParams.get('category');
+    if (catParam) setTeam(catParam);
+  }, [searchParams]);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       const result = await getProducts({
-        category: category || undefined,
+        categoryId: categoryId !== '' ? categoryId : undefined,
         minPrice: minPrice ? Number(minPrice) : undefined,
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
         size: size || undefined,
         team: team || undefined,
-        sort,
+        color: color || undefined,
+        jerseyType: jerseyType || undefined,
+        sortBy: sort,
         page,
-        limit: 12,
+        pageSize: 12,
       });
       setData(result);
     } catch {
-      setData({ products: [], total: 0, page: 1, pages: 1 });
+      setData({ items: [], totalCount: 0, page: 1, pageSize: 12, totalPages: 1 });
     } finally {
       setLoading(false);
     }
-  }, [category, minPrice, maxPrice, size, team, sort, page]);
+  }, [categoryId, minPrice, maxPrice, size, team, color, jerseyType, sort, page]);
 
   useEffect(() => {
     getCategories().then(setCategories).catch(() => {});
@@ -60,15 +84,17 @@ export default function ProductsContent() {
   }, [fetchProducts]);
 
   const clearFilters = () => {
-    setCategory('');
+    setCategoryId('');
     setMinPrice('');
     setMaxPrice('');
     setSize('');
     setTeam('');
+    setColor('');
+    setJerseyType('');
     setPage(1);
   };
 
-  const hasFilters = category || minPrice || maxPrice || size || team;
+  const hasFilters = categoryId !== '' || minPrice || maxPrice || size || team || color || jerseyType;
 
   const FilterPanel = () => (
     <div className="space-y-6">
@@ -89,21 +115,54 @@ export default function ProductsContent() {
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 block">Category</label>
         <div className="space-y-1">
           <button
-            onClick={() => { setCategory(''); setPage(1); }}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!category ? 'bg-rose-500/20 text-rose-400' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+            onClick={() => { setCategoryId(''); setPage(1); }}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${categoryId === '' ? 'bg-rose-500/20 text-rose-400' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
           >
             All Categories
           </button>
           {categories.map((c) => (
             <button
-              key={c._id}
-              onClick={() => { setCategory(c._id); setPage(1); }}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${category === c._id ? 'bg-rose-500/20 text-rose-400' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+              key={c.id}
+              onClick={() => { setCategoryId(c.id); setPage(1); }}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${categoryId === c.id ? 'bg-rose-500/20 text-rose-400' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
             >
               {c.name}
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <label className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 block">Type</label>
+        <div className="flex flex-wrap gap-2">
+          {JERSEY_TYPES.map((t) => (
+            <button
+              key={t}
+              onClick={() => { setJerseyType(jerseyType === t ? '' : t); setPage(1); }}
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold border capitalize transition-colors ${jerseyType === t ? 'bg-rose-500 border-rose-500 text-white' : 'border-gray-700 text-gray-400 hover:border-rose-500 hover:text-white'}`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 block">Color</label>
+        <div className="flex flex-wrap gap-2">
+          {COMMON_COLORS.map((c) => (
+            <button
+              key={c}
+              title={c}
+              onClick={() => { setColor(color === c ? '' : c); setPage(1); }}
+              className={`w-7 h-7 rounded-full border-2 transition-all ${color === c ? 'border-rose-500 scale-110' : 'border-gray-700 hover:border-gray-400'}`}
+              style={{ backgroundColor: COLOR_BG[c] || '#6b7280' }}
+            />
+          ))}
+        </div>
+        {color && (
+          <p className="text-xs text-gray-400 mt-1 capitalize">Selected: {color}</p>
+        )}
       </div>
 
       <div>
@@ -154,8 +213,8 @@ export default function ProductsContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white">All Jerseys</h1>
-            {data && <p className="text-gray-400 text-sm mt-1">{data.total} products found</p>}
+            <h1 className="text-2xl sm:text-3xl font-black text-white">All Products</h1>
+            {data && <p className="text-gray-400 text-sm mt-1">{data.totalCount} products found</p>}
           </div>
           <div className="flex items-center gap-3">
             <select
@@ -202,7 +261,7 @@ export default function ProductsContent() {
                   <div key={i} className="bg-gray-900 rounded-2xl aspect-[3/4] animate-pulse" />
                 ))}
               </div>
-            ) : data?.products.length === 0 ? (
+            ) : data?.items.length === 0 ? (
               <div className="text-center py-24">
                 <p className="text-4xl mb-4">🔍</p>
                 <p className="text-white font-bold text-xl mb-2">No products found</p>
@@ -214,16 +273,16 @@ export default function ProductsContent() {
             ) : (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {data?.products.map((p: Product) => <ProductCard key={p._id} product={p} />)}
+                  {data?.items.map((p: Product) => <ProductCard key={p.id} product={p} />)}
                 </div>
 
-                {data && data.pages > 1 && (
+                {data && data.totalPages > 1 && (
                   <div className="flex justify-center gap-2 mt-10">
                     <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-bold disabled:opacity-40 hover:bg-gray-800 transition-colors">Prev</button>
-                    {Array.from({ length: data.pages }, (_, i) => i + 1).map((p) => (
+                    {Array.from({ length: Math.min(data.totalPages, 7) }, (_, i) => i + 1).map((p) => (
                       <button key={p} onClick={() => setPage(p)} className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${page === p ? 'bg-rose-500 text-white' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}>{p}</button>
                     ))}
-                    <button disabled={page === data.pages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-bold disabled:opacity-40 hover:bg-gray-800 transition-colors">Next</button>
+                    <button disabled={page === data.totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-bold disabled:opacity-40 hover:bg-gray-800 transition-colors">Next</button>
                   </div>
                 )}
               </>

@@ -147,7 +147,7 @@ export default function HomePage() {
         ) : featured.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {featured.map((p) => (
-              <ProductCard key={p._id} product={p} />
+              <ProductCard key={p.id} product={p} />
             ))}
           </div>
         ) : (

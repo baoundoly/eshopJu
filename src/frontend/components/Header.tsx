@@ -16,7 +16,7 @@ export default function Header() {
   const cart = useCartStore((s) => s.cart);
   const { user, logout } = useAuthStore();
 
-  const itemCount = cart?.totalItems ?? 0;
+  const itemCount = cart?.itemCount ?? 0;
 
   return (
     <>

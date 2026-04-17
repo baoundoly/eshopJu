@@ -32,7 +32,6 @@ export default function DashboardPage() {
     { label: 'Total Revenue', value: `৳${stats.totalRevenue?.toLocaleString() ?? 0}`, icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10' },
     { label: 'Total Products', value: stats.totalProducts, icon: Package, color: 'text-rose-400', bg: 'bg-rose-500/10' },
   ] : [];
-
   return (
     <div className="p-6 space-y-8">
       <h1 className="text-2xl font-black text-white">Dashboard</h1>
@@ -80,10 +79,10 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {stats.recentOrders.map((order) => (
-                  <tr key={order._id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+                  <tr key={order.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                     <td className="px-5 py-4 text-rose-400 font-bold">#{order.orderNumber}</td>
-                    <td className="px-5 py-4 text-white">{order.customer.name}</td>
-                    <td className="px-5 py-4 text-white font-bold">৳{order.total}</td>
+                    <td className="px-5 py-4 text-white">{order.customerName}</td>
+                    <td className="px-5 py-4 text-white font-bold">৳{order.totalAmount}</td>
                     <td className="px-5 py-4">
                       <span className={`text-xs font-bold px-2 py-1 rounded-full ${STATUS_COLORS[order.status] || 'bg-gray-700 text-gray-400'}`}>
                         {order.status}
@@ -108,16 +107,15 @@ export default function DashboardPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-800">
-                  {['Product', 'Team', 'Total Sold'].map((h) => (
+                  {['Product', 'Total Sold'].map((h) => (
                     <th key={h} className="text-left text-gray-500 font-semibold px-5 py-3 text-xs uppercase">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {stats.topProducts.map(({ product, totalSold }) => (
-                  <tr key={product._id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                    <td className="px-5 py-4 text-white font-medium">{product.name}</td>
-                    <td className="px-5 py-4 text-gray-400">{product.team}</td>
+                {stats.topProducts.map(({ id, name, totalSold }) => (
+                  <tr key={id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                    <td className="px-5 py-4 text-white font-medium">{name}</td>
                     <td className="px-5 py-4 text-green-400 font-bold">{totalSold}</td>
                   </tr>
                 ))}

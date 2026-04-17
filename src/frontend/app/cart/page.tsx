@@ -23,7 +23,7 @@ function getOrCreateSessionId(): string {
 export default function CartPage() {
   const { cart, setCart } = useCartStore();
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<number | null>(null);
 
   const fetchCart = useCallback(async () => {
     const sid = getOrCreateSessionId();
@@ -41,7 +41,7 @@ export default function CartPage() {
     fetchCart();
   }, [fetchCart]);
 
-  const handleUpdate = async (itemId: string, qty: number) => {
+  const handleUpdate = async (itemId: number, qty: number) => {
     setUpdating(itemId);
     const sid = localStorage.getItem('sessionId') || undefined;
     try {
@@ -54,7 +54,7 @@ export default function CartPage() {
     }
   };
 
-  const handleRemove = async (itemId: string) => {
+  const handleRemove = async (itemId: number) => {
     setUpdating(itemId);
     const sid = localStorage.getItem('sessionId') || undefined;
     try {
@@ -75,7 +75,7 @@ export default function CartPage() {
   );
 
   const items = cart?.items ?? [];
-  const subtotal = cart?.totalPrice ?? 0;
+  const subtotal = cart?.totalAmount ?? 0;
   const total = subtotal + DELIVERY;
 
   if (items.length === 0) return (
@@ -100,23 +100,27 @@ export default function CartPage() {
           {/* Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => {
-              const img = item.product?.images?.[0] || PLACEHOLDER;
-              const price = item.product?.discountPrice ?? item.product?.price ?? item.price;
+              const img = item.productImage || PLACEHOLDER;
+              const price = item.unitPrice;
               return (
-                <div key={item._id} className="bg-gray-900 rounded-2xl p-4 border border-gray-800 flex gap-4">
+                <div key={item.id} className="bg-gray-900 rounded-2xl p-4 border border-gray-800 flex gap-4">
                   <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden bg-gray-800">
-                    <Image src={img} alt={item.product?.name || 'Jersey'} fill className="object-cover" unoptimized
+                    <Image src={img} alt={item.productName || 'Jersey'} fill className="object-cover" unoptimized
                       onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-white font-bold text-sm sm:text-base line-clamp-2">{item.product?.name}</p>
-                        <p className="text-gray-400 text-xs mt-0.5">Size: <span className="text-white font-semibold">{item.size}</span></p>
+                        <p className="text-white font-bold text-sm sm:text-base line-clamp-2">{item.productName}</p>
+                        <p className="text-gray-400 text-xs mt-0.5">
+                          Size: <span className="text-white font-semibold">{item.size}</span>
+                          {item.color && <> · Color: <span className="text-white font-semibold capitalize">{item.color}</span></>}
+                          {item.jerseyType && item.jerseyType !== 'notApplicable' && <> · <span className="text-white font-semibold capitalize">{item.jerseyType}</span></>}
+                        </p>
                       </div>
                       <button
-                        onClick={() => handleRemove(item._id)}
-                        disabled={updating === item._id}
+                        onClick={() => handleRemove(item.id)}
+                        disabled={updating === item.id}
                         className="text-gray-600 hover:text-red-400 transition-colors shrink-0"
                       >
                         <Trash2 size={16} />
@@ -125,16 +129,16 @@ export default function CartPage() {
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleUpdate(item._id, Math.max(1, item.quantity - 1))}
-                          disabled={updating === item._id || item.quantity <= 1}
+                          onClick={() => handleUpdate(item.id, Math.max(1, item.quantity - 1))}
+                          disabled={updating === item.id || item.quantity <= 1}
                           className="w-8 h-8 rounded-lg bg-gray-800 text-white flex items-center justify-center hover:bg-gray-700 disabled:opacity-40 transition-colors"
                         >
                           <Minus size={12} />
                         </button>
                         <span className="text-white font-bold w-6 text-center">{item.quantity}</span>
                         <button
-                          onClick={() => handleUpdate(item._id, item.quantity + 1)}
-                          disabled={updating === item._id}
+                          onClick={() => handleUpdate(item.id, item.quantity + 1)}
+                          disabled={updating === item.id}
                           className="w-8 h-8 rounded-lg bg-gray-800 text-white flex items-center justify-center hover:bg-gray-700 transition-colors"
                         >
                           <Plus size={12} />

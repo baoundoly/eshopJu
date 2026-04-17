@@ -8,6 +8,7 @@ import type {
   PaginatedProducts,
   Product,
   ProductFilters,
+  ProductVariant,
 } from './types';
 
 const api = axios.create({
@@ -37,17 +38,26 @@ export const getProducts = (filters: ProductFilters = {}) =>
 export const getFeatured = (count = 8) =>
   api.get<Product[]>('/products/featured', { params: { count } }).then((r) => r.data);
 
-export const getProduct = (id: string) =>
+export const getProduct = (id: number) =>
   api.get<Product>(`/products/${id}`).then((r) => r.data);
 
 export const getProductBySlug = (slug: string) =>
   api.get<Product>(`/products/slug/${slug}`).then((r) => r.data);
 
+export const createProduct = (data: object) =>
+  api.post<Product>('/products', data).then((r) => r.data);
+
+export const updateProduct = (id: number, data: object) =>
+  api.put<Product>(`/products/${id}`, data).then((r) => r.data);
+
+export const deleteProduct = (id: number) =>
+  api.delete(`/products/${id}`).then((r) => r.data);
+
 // Categories
 export const getCategories = () =>
   api.get<Category[]>('/categories').then((r) => r.data);
 
-export const getCategory = (id: string) =>
+export const getCategory = (id: number) =>
   api.get<Category>(`/categories/${id}`).then((r) => r.data);
 
 // Cart
@@ -55,14 +65,14 @@ export const getCart = (sessionId?: string) =>
   api.get<CartDto>('/cart', { params: sessionId ? { sessionId } : {} }).then((r) => r.data);
 
 export const addToCart = (
-  item: { productId: string; size: string; quantity: number },
+  item: { productId: number; variantId?: number; size: string; color?: string; jerseyType?: string; quantity: number },
   sessionId?: string,
 ) => api.post<CartDto>('/cart', { ...item, sessionId }).then((r) => r.data);
 
-export const updateCartItem = (itemId: string, quantity: number, sessionId?: string) =>
+export const updateCartItem = (itemId: number, quantity: number, sessionId?: string) =>
   api.put<CartDto>(`/cart/${itemId}`, { quantity, sessionId }).then((r) => r.data);
 
-export const removeFromCart = (itemId: string, sessionId?: string) =>
+export const removeFromCart = (itemId: number, sessionId?: string) =>
   api
     .delete<CartDto>(`/cart/${itemId}`, { params: sessionId ? { sessionId } : {} })
     .then((r) => r.data);
@@ -74,15 +84,18 @@ export const clearCart = (sessionId?: string) =>
 
 // Orders
 export const createOrder = (data: {
-  customer: { name: string; phone: string; address: string; email?: string };
-  paymentMethod: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  paymentMethod: number; // 0=BKash, 1=Nagad, 2=CashOnDelivery
   transactionId?: string;
   sessionId?: string;
   notes?: string;
+  items: { productId: number; variantId?: number; size: string; color?: string; jerseyType?: string; quantity: number }[];
 }) => api.post<OrderDto>('/orders', data).then((r) => r.data);
 
 export const getOrderByNumber = (orderNumber: string) =>
-  api.get<OrderDto>(`/orders/track/${orderNumber}`).then((r) => r.data);
+  api.get<OrderDto>(`/orders/number/${orderNumber}`).then((r) => r.data);
 
 export const generateWhatsAppLink = (data: {
   orderNumber: string;
@@ -100,13 +113,26 @@ export const generateWhatsAppLink = (data: {
 export const getDashboard = () =>
   api.get<DashboardStats>('/admin/dashboard').then((r) => r.data);
 
-export const getOrders = (params?: { status?: string; page?: number; limit?: number }) =>
-  api.get<{ orders: OrderDto[]; total: number; pages: number }>('/admin/orders', { params }).then((r) => r.data);
+export const getOrders = (params?: { status?: string; page?: number; pageSize?: number }) =>
+  api.get<PaginatedProducts>('/admin/orders', { params }).then((r) => r.data);
 
-export const updateOrderStatus = (id: string, status: string) =>
+export const updateOrderStatus = (id: number, status: number) =>
   api.put<OrderDto>(`/admin/orders/${id}/status`, { status }).then((r) => r.data);
 
-export const verifyPayment = (id: string, data: { transactionId?: string }) =>
+export const verifyPayment = (id: number, data: { paymentStatus: number; transactionId?: string }) =>
   api.put<OrderDto>(`/admin/orders/${id}/verify-payment`, data).then((r) => r.data);
+
+// Admin – Variant management
+export const getVariants = (productId: number) =>
+  api.get<ProductVariant[]>(`/admin/products/${productId}/variants`).then((r) => r.data);
+
+export const addVariant = (productId: number, data: object) =>
+  api.post<ProductVariant>(`/admin/products/${productId}/variants`, data).then((r) => r.data);
+
+export const updateVariant = (productId: number, variantId: number, data: object) =>
+  api.put<ProductVariant>(`/admin/products/${productId}/variants/${variantId}`, data).then((r) => r.data);
+
+export const deleteVariant = (productId: number, variantId: number) =>
+  api.delete(`/admin/products/${productId}/variants/${variantId}`).then((r) => r.data);
 
 export default api;

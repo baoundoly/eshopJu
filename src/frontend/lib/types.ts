@@ -1,84 +1,102 @@
-export interface ProductSize {
+export interface ProductVariant {
+  id: number;
+  color: string;
+  jerseyType: string; // "home" | "away" | "third" | "notApplicable"
   size: string;
-  stock: number;
+  stockQuantity: number;
+  sku?: string;
 }
 
 export interface Category {
-  _id: string;
+  id: number;
   name: string;
   slug: string;
   description?: string;
-  image?: string;
+  imageUrl?: string;
+  isActive: boolean;
 }
 
 export interface Product {
-  _id: string;
+  id: number;
   name: string;
   slug: string;
-  team: string;
-  category: Category | string;
+  team?: string;
+  category?: Category;
+  categoryId: number;
+  categoryName: string;
   description?: string;
   price: number;
   discountPrice?: number;
+  totalStock: number;
+  color?: string;
+  jerseyType: string;
   images: string[];
-  sizes: ProductSize[];
-  featured: boolean;
-  status: 'active' | 'inactive';
+  primaryImage?: string;
+  variants: ProductVariant[];
+  colors: string[];
+  types: string[];
+  isFeatured: boolean;
+  isActive: boolean;
+  averageRating: number;
+  reviewCount: number;
   createdAt: string;
-  updatedAt: string;
 }
 
-export interface CartItem {
-  _id: string;
-  product: Product;
+export interface CartItemDto {
+  id: number;
+  productId: number;
+  productName: string;
+  productImage?: string;
+  variantId?: number;
   size: string;
+  color?: string;
+  jerseyType?: string;
   quantity: number;
-  price: number;
+  unitPrice: number;
+  totalPrice: number;
 }
 
 export interface CartDto {
-  _id: string;
-  sessionId?: string;
-  user?: string;
-  items: CartItem[];
-  totalPrice: number;
-  totalItems: number;
+  id: number;
+  items: CartItemDto[];
+  totalAmount: number;
+  itemCount: number;
 }
 
-export interface OrderItem {
-  product: Product | string;
-  name: string;
+export interface OrderItemDto {
+  productId: number;
+  productName: string;
+  variantId?: number;
   size: string;
+  color?: string;
+  jerseyType?: string;
   quantity: number;
-  price: number;
+  unitPrice: number;
+  totalPrice: number;
 }
 
 export interface OrderDto {
-  _id: string;
+  id: number;
   orderNumber: string;
-  customer: {
-    name: string;
-    phone: string;
-    address: string;
-    email?: string;
-  };
-  items: OrderItem[];
-  subtotal: number;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  items: OrderItemDto[];
+  subTotal: number;
   deliveryCharge: number;
-  total: number;
-  paymentMethod: 'bkash' | 'nagad' | 'cod';
-  paymentStatus: 'pending' | 'paid' | 'failed';
+  totalAmount: number;
+  paymentMethod: string; // "bKash" | "nagad" | "cashOnDelivery"
+  paymentStatus: string; // "pending" | "verified" | "rejected"
   transactionId?: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: string; // "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled"
   notes?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface AuthDto {
   token: string;
   user: {
-    _id: string;
+    id: number;
     name: string;
     email: string;
     phone?: string;
@@ -90,25 +108,51 @@ export interface DashboardStats {
   totalOrders: number;
   pendingOrders: number;
   totalRevenue: number;
+  monthlyRevenue: number;
+  todayRevenue: number;
   totalProducts: number;
-  recentOrders: OrderDto[];
-  topProducts: Array<{ product: Product; totalSold: number }>;
+  lowStockProducts: number;
+  totalCustomers: number;
+  recentOrders: RecentOrderStats[];
+  topProducts: TopProductStats[];
+}
+
+export interface RecentOrderStats {
+  id: number;
+  orderNumber: string;
+  customerName: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface TopProductStats {
+  id: number;
+  name: string;
+  totalSold: number;
+  revenue: number;
 }
 
 export interface ProductFilters {
-  category?: string;
+  search?: string;
+  categoryId?: number;
+  team?: string;
+  color?: string;
+  jerseyType?: string;
   minPrice?: number;
   maxPrice?: number;
   size?: string;
-  team?: string;
-  sort?: string;
+  isFeatured?: boolean;
+  sortBy?: string;
   page?: number;
-  limit?: number;
+  pageSize?: number;
 }
 
 export interface PaginatedProducts {
-  products: Product[];
-  total: number;
+  items: Product[];
+  totalCount: number;
   page: number;
-  pages: number;
+  pageSize: number;
+  totalPages: number;
 }
+

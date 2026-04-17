@@ -53,19 +53,30 @@ export default function CheckoutPage() {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setErrors({});
     setSubmitting(true);
-    const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || undefined : undefined;
     try {
+      const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || undefined : undefined;
+      const paymentMethodMap: Record<PaymentMethod, number> = { bkash: 0, nagad: 1, cod: 2 };
       const order = await createOrder({
-        customer: { name, phone, address, email: email || undefined },
-        paymentMethod,
+        customerName: name,
+        customerPhone: phone,
+        customerAddress: address,
+        paymentMethod: paymentMethodMap[paymentMethod],
         transactionId: transactionId || undefined,
         sessionId,
+        items: items.map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          size: item.size,
+          color: item.color,
+          jerseyType: item.jerseyType,
+          quantity: item.quantity,
+        })),
       });
       clearCart();
       const waLink = generateWhatsAppLink({
         orderNumber: order.orderNumber,
         customerName: name,
-        total: order.total,
+        total: order.totalAmount,
       });
       router.push(`/order-success?order=${order.orderNumber}&wa=${encodeURIComponent(waLink)}`);
     } catch {
@@ -75,7 +86,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const subtotal = cart?.totalPrice ?? 0;
+  const subtotal = cart?.totalAmount ?? 0;
   const total = subtotal + DELIVERY;
   const items = cart?.items ?? [];
 
@@ -177,16 +188,16 @@ export default function CheckoutPage() {
                 <h2 className="text-white font-black text-lg mb-5">Order Summary</h2>
                 <div className="space-y-3 mb-5 max-h-64 overflow-y-auto">
                   {items.map((item) => (
-                    <div key={item._id} className="flex gap-3 items-center">
+                    <div key={item.id} className="flex gap-3 items-center">
                       <div className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-gray-800">
-                        <Image src={item.product?.images?.[0] || PLACEHOLDER} alt={item.product?.name || ''} fill className="object-cover" unoptimized
+                        <Image src={item.productImage || PLACEHOLDER} alt={item.productName || ''} fill className="object-cover" unoptimized
                           onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-xs font-bold line-clamp-1">{item.product?.name}</p>
+                        <p className="text-white text-xs font-bold line-clamp-1">{item.productName}</p>
                         <p className="text-gray-400 text-xs">Size: {item.size} × {item.quantity}</p>
                       </div>
-                      <span className="text-rose-400 text-sm font-bold shrink-0">৳{(item.product?.discountPrice ?? item.product?.price ?? item.price) * item.quantity}</span>
+                      <span className="text-rose-400 text-sm font-bold shrink-0">৳{item.unitPrice * item.quantity}</span>
                     </div>
                   ))}
                 </div>
