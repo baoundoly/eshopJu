@@ -22,6 +22,9 @@ public class AppDbContext : DbContext
     public DbSet<StockIn> StockIns => Set<StockIn>();
     public DbSet<StockInItem> StockInItems => Set<StockInItem>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<Coupon> Coupons => Set<Coupon>();
+    public DbSet<DiscountRule> DiscountRules => Set<DiscountRule>();
+    public DbSet<OrderDiscount> OrderDiscounts => Set<OrderDiscount>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,6 +69,31 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<StockInItem>(entity =>
         {
             entity.Property(i => i.PurchasePrice).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<Coupon>(entity =>
+        {
+            entity.HasIndex(c => c.Code).IsUnique();
+            entity.Property(c => c.Value).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.MaxDiscountAmount).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.MinOrderAmount).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<DiscountRule>(entity =>
+        {
+            entity.Property(r => r.Value).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.MaxDiscountAmount).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.MinOrderAmount).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.Property(o => o.DiscountAmount).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<OrderDiscount>(entity =>
+        {
+            entity.Property(od => od.DiscountAmount).HasColumnType("decimal(18,2)");
         });
 
         // Seed data

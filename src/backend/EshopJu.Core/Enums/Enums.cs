@@ -45,3 +45,24 @@ public enum StockMovementType
     Adjustment = 2,
     Return = 3
 }
+
+public enum DiscountType
+{
+    Percentage = 0,
+    Fixed = 1,
+    BuyXGetY = 2
+}
+
+public enum DiscountAppliesTo
+{
+    All = 0,
+    Category = 1,
+    Product = 2,
+    Variant = 3
+}
+
+public enum DiscountSource
+{
+    Coupon = 0,
+    Rule = 1
+}

@@ -19,10 +19,13 @@ public class Order : BaseEntity
     public string? TransactionId { get; set; }
 
     public decimal SubTotal { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public string? CouponCode { get; set; }
     public decimal DeliveryCharge { get; set; }
     public decimal TotalAmount { get; set; }
 
     public string? Notes { get; set; }
 
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+    public ICollection<OrderDiscount> Discounts { get; set; } = new List<OrderDiscount>();
 }

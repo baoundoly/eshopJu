@@ -14,11 +14,13 @@ public class OrderService : IOrderService
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IDiscountService _discountService;
 
-    public OrderService(AppDbContext context, IConfiguration configuration)
+    public OrderService(AppDbContext context, IConfiguration configuration, IDiscountService discountService)
     {
         _context = context;
         _configuration = configuration;
+        _discountService = discountService;
     }
 
     public async Task<PagedResult<OrderDto>> GetOrdersAsync(int page = 1, int pageSize = 20, string? status = null)
@@ -26,6 +28,7 @@ public class OrderService : IOrderService
         var query = _context.Orders
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
+            .Include(o => o.Discounts)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(status) &&
@@ -56,6 +59,7 @@ public class OrderService : IOrderService
         var order = await _context.Orders
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
+            .Include(o => o.Discounts)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         return order == null ? null : MapToDto(order);
@@ -66,6 +70,7 @@ public class OrderService : IOrderService
         var order = await _context.Orders
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
+            .Include(o => o.Discounts)
             .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
 
         return order == null ? null : MapToDto(order);
@@ -172,10 +177,46 @@ public class OrderService : IOrderService
         }
 
         order.SubTotal = subTotal;
-        order.TotalAmount = subTotal + order.DeliveryCharge;
+
+        // Run pricing engine
+        var discountItems = dto.Items.Select((itemDto, idx) =>
+        {
+            var orderItem = order.Items.ElementAt(idx);
+            // Retrieve category from product (already loaded in the loop above)
+            return new DiscountCartItemDto
+            {
+                ProductId = itemDto.ProductId,
+                VariantId = orderItem.VariantId,
+                CategoryId = 0, // will be populated below
+                UnitPrice = orderItem.UnitPrice,
+                Quantity = itemDto.Quantity
+            };
+        }).ToList();
+
+        // Populate CategoryId for each item
+        for (int i = 0; i < discountItems.Count; i++)
+        {
+            var prod = await _context.Products.FindAsync(discountItems[i].ProductId);
+            if (prod != null) discountItems[i].CategoryId = prod.CategoryId;
+        }
+
+        var discountPreview = await _discountService.CalculateDiscountsAsync(
+            discountItems, dto.CouponCode, userId);
+
+        order.DiscountAmount = discountPreview.TotalDiscount;
+        order.CouponCode = discountPreview.AppliedDiscounts
+            .FirstOrDefault(d => d.Source == "Coupon")?.SourceLabel;
+        order.TotalAmount = subTotal + order.DeliveryCharge - order.DiscountAmount;
 
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
+
+        // Write discount audit rows
+        await _discountService.WriteOrderDiscountsAsync(order.Id, discountPreview);
+
+        // Increment coupon usage counter
+        if (!string.IsNullOrWhiteSpace(dto.CouponCode))
+            await _discountService.IncrementCouponUsageAsync(dto.CouponCode);
 
         // Record stock-out movements in the ledger
         foreach (var item in order.Items)
@@ -205,6 +246,7 @@ public class OrderService : IOrderService
         var order = await _context.Orders
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
+            .Include(o => o.Discounts)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return null;
@@ -221,6 +263,7 @@ public class OrderService : IOrderService
         var order = await _context.Orders
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
+            .Include(o => o.Discounts)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return null;
@@ -358,6 +401,8 @@ public class OrderService : IOrderService
             PaymentStatus = order.PaymentStatus,
             TransactionId = order.TransactionId,
             SubTotal = order.SubTotal,
+            DiscountAmount = order.DiscountAmount,
+            CouponCode = order.CouponCode,
             DeliveryCharge = order.DeliveryCharge,
             TotalAmount = order.TotalAmount,
             Notes = order.Notes,
@@ -372,6 +417,13 @@ public class OrderService : IOrderService
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
                 TotalPrice = i.TotalPrice
+            }).ToList(),
+            Discounts = order.Discounts.Select(d => new OrderDiscountDto
+            {
+                Source = d.Source.ToString(),
+                SourceLabel = d.SourceLabel,
+                DiscountAmount = d.DiscountAmount,
+                Description = d.Description
             }).ToList(),
             CreatedAt = order.CreatedAt
         };

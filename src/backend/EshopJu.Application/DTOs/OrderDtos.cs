@@ -17,10 +17,13 @@ public class OrderDto
     public string PaymentStatusLabel => PaymentStatus.ToString();
     public string? TransactionId { get; set; }
     public decimal SubTotal { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public string? CouponCode { get; set; }
     public decimal DeliveryCharge { get; set; }
     public decimal TotalAmount { get; set; }
     public string? Notes { get; set; }
     public List<OrderItemDto> Items { get; set; } = new();
+    public List<OrderDiscountDto> Discounts { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }
 
@@ -45,6 +48,7 @@ public class CreateOrderDto
     public PaymentMethod PaymentMethod { get; set; }
     public string? TransactionId { get; set; }
     public string? Notes { get; set; }
+    public string? CouponCode { get; set; }
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }
 
