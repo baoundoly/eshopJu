@@ -10,8 +10,9 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("EshopJuDb"));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // Services
 builder.Services.AddScoped<IProductService, ProductService>();
