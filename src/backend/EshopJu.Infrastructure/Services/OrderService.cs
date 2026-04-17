@@ -100,29 +100,47 @@ public class OrderService : IOrderService
         foreach (var itemDto in dto.Items)
         {
             var product = await _context.Products
-                .Include(p => p.Sizes)
+                .Include(p => p.Variants)
                 .FirstOrDefaultAsync(p => p.Id == itemDto.ProductId)
                 ?? throw new InvalidOperationException($"Product {itemDto.ProductId} not found.");
 
-            // Validate total product stock
-            if (product.StockQuantity < itemDto.Quantity)
-                throw new InvalidOperationException(
-                    $"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}.");
+            ProductVariant? variant = null;
 
-            // Validate size-specific stock when sizes are defined
-            if (product.Sizes.Any())
+            if (itemDto.VariantId.HasValue)
             {
-                var sizeStock = product.Sizes.FirstOrDefault(s => s.Size == itemDto.Size);
-                if (sizeStock == null)
+                // Variant-based stock validation
+                variant = product.Variants.FirstOrDefault(v => v.Id == itemDto.VariantId.Value);
+                if (variant == null)
                     throw new InvalidOperationException(
-                        $"Size '{itemDto.Size}' is not available for product '{product.Name}'.");
+                        $"Variant {itemDto.VariantId} is not available for product '{product.Name}'.");
 
-                if (sizeStock.StockQuantity < itemDto.Quantity)
+                if (variant.StockQuantity < itemDto.Quantity)
                     throw new InvalidOperationException(
-                        $"Insufficient stock for '{product.Name}' in size '{itemDto.Size}'. Available: {sizeStock.StockQuantity}.");
+                        $"Insufficient stock for '{product.Name}' ({variant.Color} / {variant.JerseyType} / {variant.Size}). Available: {variant.StockQuantity}.");
 
-                sizeStock.StockQuantity -= itemDto.Quantity;
-                sizeStock.UpdatedAt = DateTime.UtcNow;
+                variant.StockQuantity -= itemDto.Quantity;
+                variant.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (product.Variants.Any())
+            {
+                // Fall back to size-based match within variants
+                variant = product.Variants.FirstOrDefault(v => v.Size == itemDto.Size);
+                if (variant != null)
+                {
+                    if (variant.StockQuantity < itemDto.Quantity)
+                        throw new InvalidOperationException(
+                            $"Insufficient stock for '{product.Name}' in size '{itemDto.Size}'. Available: {variant.StockQuantity}.");
+
+                    variant.StockQuantity -= itemDto.Quantity;
+                    variant.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+            else
+            {
+                // Legacy: product-level stock only
+                if (product.StockQuantity < itemDto.Quantity)
+                    throw new InvalidOperationException(
+                        $"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}.");
             }
 
             var unitPrice = product.DiscountPrice ?? product.Price;
@@ -132,8 +150,11 @@ public class OrderService : IOrderService
             order.Items.Add(new OrderItem
             {
                 ProductId = itemDto.ProductId,
+                VariantId = variant?.Id,
                 ProductName = product.Name,
-                Size = itemDto.Size,
+                Size = variant?.Size ?? itemDto.Size,
+                Color = variant?.Color ?? itemDto.Color,
+                JerseyType = variant?.JerseyType.ToString() ?? itemDto.JerseyType,
                 Quantity = itemDto.Quantity,
                 UnitPrice = unitPrice,
                 TotalPrice = totalPrice,
@@ -141,7 +162,12 @@ public class OrderService : IOrderService
                 UpdatedAt = DateTime.UtcNow
             });
 
-            product.StockQuantity -= itemDto.Quantity;
+            // Sync product total stock from variants
+            if (product.Variants.Any())
+                product.StockQuantity = product.Variants.Sum(v => v.StockQuantity);
+            else
+                product.StockQuantity -= itemDto.Quantity;
+
             product.UpdatedAt = DateTime.UtcNow;
         }
 
@@ -319,7 +345,10 @@ public class OrderService : IOrderService
             {
                 ProductId = i.ProductId,
                 ProductName = i.ProductName,
+                VariantId = i.VariantId,
                 Size = i.Size,
+                Color = i.Color,
+                JerseyType = i.JerseyType,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
                 TotalPrice = i.TotalPrice

@@ -29,3 +29,11 @@ public enum UserRole
     Customer = 0,
     Admin = 1
 }
+
+public enum JerseyType
+{
+    NotApplicable = 0,
+    Home = 1,
+    Away = 2,
+    Third = 3
+}

@@ -1,4 +1,5 @@
 using EshopJu.Core.Entities;
+using EshopJu.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace EshopJu.Infrastructure.Persistence;
@@ -11,7 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
-    public DbSet<ProductSize> ProductSizes => Set<ProductSize>();
+    public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Order> Orders => Set<Order>();
@@ -64,17 +65,51 @@ public class AppDbContext : DbContext
 
     private static void SeedData(ModelBuilder modelBuilder)
     {
+        var now = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         modelBuilder.Entity<Category>().HasData(
-            new Category { Id = 1, Name = "Club Jerseys", Slug = "club-jerseys", Description = "Official club football jerseys", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 2, Name = "National Team", Slug = "national-team", Description = "National team jerseys", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 3, Name = "Custom Jerseys", Slug = "custom-jerseys", Description = "Custom printed jerseys", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            new Category { Id = 1, Name = "Club Jerseys", Slug = "club-jerseys", Description = "Official club football jerseys", IsActive = true, CreatedAt = now, UpdatedAt = now },
+            new Category { Id = 2, Name = "National Team", Slug = "national-team", Description = "National team jerseys", IsActive = true, CreatedAt = now, UpdatedAt = now },
+            new Category { Id = 3, Name = "Custom Jerseys", Slug = "custom-jerseys", Description = "Custom printed jerseys", IsActive = true, CreatedAt = now, UpdatedAt = now },
+            new Category { Id = 4, Name = "Accessories", Slug = "accessories", Description = "Football accessories: caps, footballs, socks and more", IsActive = true, CreatedAt = now, UpdatedAt = now }
         );
 
         modelBuilder.Entity<Product>().HasData(
-            new Product { Id = 1, Name = "Argentina 2024 Home Jersey", Slug = "argentina-2024-home", Team = "Argentina", Description = "Official Argentina home jersey for 2024", Price = 1200, StockQuantity = 50, IsFeatured = true, IsActive = true, CategoryId = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Product { Id = 2, Name = "Brazil 2024 Away Jersey", Slug = "brazil-2024-away", Team = "Brazil", Description = "Official Brazil away jersey for 2024", Price = 1100, DiscountPrice = 950, StockQuantity = 30, IsFeatured = true, IsActive = true, CategoryId = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Product { Id = 3, Name = "Real Madrid Home Jersey", Slug = "real-madrid-home", Team = "Real Madrid", Description = "Official Real Madrid home jersey", Price = 1500, StockQuantity = 25, IsFeatured = true, IsActive = true, CategoryId = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Product { Id = 4, Name = "Barcelona Away Jersey", Slug = "barcelona-away", Team = "Barcelona", Description = "Official Barcelona away jersey", Price = 1400, DiscountPrice = 1200, StockQuantity = 20, IsFeatured = false, IsActive = true, CategoryId = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            new Product { Id = 1, Name = "Argentina 2024 Home Jersey", Slug = "argentina-2024-home", Team = "Argentina", Description = "Official Argentina home jersey for 2024", Price = 1200, StockQuantity = 50, IsFeatured = true, IsActive = true, CategoryId = 2, Color = "Sky Blue", JerseyType = JerseyType.Home, CreatedAt = now, UpdatedAt = now },
+            new Product { Id = 2, Name = "Brazil 2024 Away Jersey", Slug = "brazil-2024-away", Team = "Brazil", Description = "Official Brazil away jersey for 2024", Price = 1100, DiscountPrice = 950, StockQuantity = 30, IsFeatured = true, IsActive = true, CategoryId = 2, Color = "Blue", JerseyType = JerseyType.Away, CreatedAt = now, UpdatedAt = now },
+            new Product { Id = 3, Name = "Real Madrid Home Jersey", Slug = "real-madrid-home", Team = "Real Madrid", Description = "Official Real Madrid home jersey", Price = 1500, StockQuantity = 25, IsFeatured = true, IsActive = true, CategoryId = 1, Color = "White", JerseyType = JerseyType.Home, CreatedAt = now, UpdatedAt = now },
+            new Product { Id = 4, Name = "Barcelona Away Jersey", Slug = "barcelona-away", Team = "Barcelona", Description = "Official Barcelona away jersey", Price = 1400, DiscountPrice = 1200, StockQuantity = 20, IsFeatured = false, IsActive = true, CategoryId = 1, Color = "Yellow", JerseyType = JerseyType.Away, CreatedAt = now, UpdatedAt = now },
+            new Product { Id = 5, Name = "Football Cap", Slug = "football-cap", Team = null, Description = "Premium football cap with embroidered team logo", Price = 400, StockQuantity = 100, IsFeatured = false, IsActive = true, CategoryId = 4, Color = "Black", JerseyType = JerseyType.NotApplicable, CreatedAt = now, UpdatedAt = now },
+            new Product { Id = 6, Name = "Match Football", Slug = "match-football", Team = null, Description = "Professional match football, size 5", Price = 800, StockQuantity = 60, IsFeatured = false, IsActive = true, CategoryId = 4, Color = "White", JerseyType = JerseyType.NotApplicable, CreatedAt = now, UpdatedAt = now },
+            new Product { Id = 7, Name = "Football Socks", Slug = "football-socks", Team = null, Description = "Anti-blister football socks, pair", Price = 200, StockQuantity = 200, IsFeatured = false, IsActive = true, CategoryId = 4, Color = "White", JerseyType = JerseyType.NotApplicable, CreatedAt = now, UpdatedAt = now }
+        );
+
+        // Variants for jerseys (color + type + size combinations)
+        modelBuilder.Entity<ProductVariant>().HasData(
+            // Argentina Home
+            new ProductVariant { Id = 1, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "S",   StockQuantity = 10, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 2, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "M",   StockQuantity = 15, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 3, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "L",   StockQuantity = 15, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 4, ProductId = 1, Color = "Sky Blue", JerseyType = JerseyType.Home, Size = "XL",  StockQuantity = 10, CreatedAt = now, UpdatedAt = now },
+            // Brazil Away
+            new ProductVariant { Id = 5, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "S",   StockQuantity = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 6, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "M",   StockQuantity = 10, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 7, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "L",   StockQuantity = 10, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 8, ProductId = 2, Color = "Blue", JerseyType = JerseyType.Away, Size = "XL",  StockQuantity = 5,  CreatedAt = now, UpdatedAt = now },
+            // Real Madrid Home
+            new ProductVariant { Id = 9,  ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "S",  StockQuantity = 5, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 10, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "M",  StockQuantity = 8, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 11, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "L",  StockQuantity = 8, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 12, ProductId = 3, Color = "White", JerseyType = JerseyType.Home, Size = "XL", StockQuantity = 4, CreatedAt = now, UpdatedAt = now },
+            // Barcelona Away
+            new ProductVariant { Id = 13, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "S",  StockQuantity = 4, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 14, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "M",  StockQuantity = 6, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 15, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "L",  StockQuantity = 6, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 16, ProductId = 4, Color = "Yellow", JerseyType = JerseyType.Away, Size = "XL", StockQuantity = 4, CreatedAt = now, UpdatedAt = now },
+            // Accessories - one size fits all / one variant per product
+            new ProductVariant { Id = 17, ProductId = 5, Color = "Black",  JerseyType = JerseyType.NotApplicable, Size = "One Size", StockQuantity = 100, CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 18, ProductId = 6, Color = "White",  JerseyType = JerseyType.NotApplicable, Size = "Size 5",   StockQuantity = 60,  CreatedAt = now, UpdatedAt = now },
+            new ProductVariant { Id = 19, ProductId = 7, Color = "White",  JerseyType = JerseyType.NotApplicable, Size = "One Size", StockQuantity = 200, CreatedAt = now, UpdatedAt = now }
         );
     }
 }

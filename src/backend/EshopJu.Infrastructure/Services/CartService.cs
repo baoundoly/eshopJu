@@ -28,8 +28,10 @@ public class CartService : ICartService
         var product = await _context.Products.FindAsync(dto.ProductId)
             ?? throw new InvalidOperationException($"Product {dto.ProductId} not found.");
 
-        var existingItem = cart.Items.FirstOrDefault(i =>
-            i.ProductId == dto.ProductId && i.Size == dto.Size);
+        // Find a matching existing cart item (same product + variant or same product + size)
+        var existingItem = dto.VariantId.HasValue
+            ? cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId && i.VariantId == dto.VariantId)
+            : cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId && i.Size == dto.Size && i.VariantId == null);
 
         if (existingItem != null)
         {
@@ -43,7 +45,10 @@ public class CartService : ICartService
             {
                 CartId = cart.Id,
                 ProductId = dto.ProductId,
+                VariantId = dto.VariantId,
                 Size = dto.Size,
+                Color = dto.Color,
+                JerseyType = dto.JerseyType,
                 Quantity = dto.Quantity,
                 UnitPrice = unitPrice,
                 CreatedAt = DateTime.UtcNow,
@@ -165,7 +170,10 @@ public class CartService : ICartService
             ProductImage = i.Product?.Images
                 .FirstOrDefault(img => img.IsPrimary)?.ImageUrl
                 ?? i.Product?.Images.OrderBy(img => img.SortOrder).FirstOrDefault()?.ImageUrl,
+            VariantId = i.VariantId,
             Size = i.Size,
+            Color = i.Color,
+            JerseyType = i.JerseyType,
             Quantity = i.Quantity,
             UnitPrice = i.UnitPrice,
             TotalPrice = i.UnitPrice * i.Quantity
