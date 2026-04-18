@@ -3,13 +3,14 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingBag, Tag, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, BarChart3 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -52,14 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="p-3 border-t border-gray-800">
-          <div className="flex items-center gap-2 text-gray-500 text-xs">
-            <Tag size={12} />
-            <span>Categories</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-500 text-xs mt-1">
-            <CreditCard size={12} />
-            <span>Payments</span>
-          </div>
+          <p className="text-gray-600 text-xs">EshopJu Admin</p>
         </div>
       </aside>
 

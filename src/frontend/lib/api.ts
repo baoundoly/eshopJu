@@ -3,12 +3,21 @@ import type {
   AuthDto,
   CartDto,
   Category,
+  CustomerReportDto,
   DashboardStats,
+  DiscountReportDto,
+  ExtendedDashboardDto,
+  InventoryReportDto,
   OrderDto,
   PaginatedProducts,
   Product,
   ProductFilters,
   ProductVariant,
+  ProfitReportDto,
+  SalesReportDto,
+  ShippingReportDto,
+  StockMovementReportDto,
+  TopProductsReportDto,
 } from './types';
 
 const api = axios.create({
@@ -134,5 +143,35 @@ export const updateVariant = (productId: number, variantId: number, data: object
 
 export const deleteVariant = (productId: number, variantId: number) =>
   api.delete(`/admin/products/${productId}/variants/${variantId}`).then((r) => r.data);
+
+// Reports
+type DateParams = { from?: string; to?: string };
+
+export const getExtendedDashboard = () =>
+  api.get<ExtendedDashboardDto>('/reports/dashboard').then((r) => r.data);
+
+export const getSalesReport = (params?: DateParams) =>
+  api.get<SalesReportDto>('/reports/sales', { params }).then((r) => r.data);
+
+export const getProfitReport = (params?: DateParams) =>
+  api.get<ProfitReportDto>('/reports/profit', { params }).then((r) => r.data);
+
+export const getInventoryReport = () =>
+  api.get<InventoryReportDto>('/reports/inventory').then((r) => r.data);
+
+export const getStockMovementReport = (params?: DateParams) =>
+  api.get<StockMovementReportDto>('/reports/stock-movements', { params }).then((r) => r.data);
+
+export const getDiscountReport = (params?: DateParams) =>
+  api.get<DiscountReportDto>('/reports/discounts', { params }).then((r) => r.data);
+
+export const getShippingReport = (params?: DateParams) =>
+  api.get<ShippingReportDto>('/reports/shipping', { params }).then((r) => r.data);
+
+export const getTopProductsReport = (params?: DateParams & { top?: number }) =>
+  api.get<TopProductsReportDto>('/reports/top-products', { params }).then((r) => r.data);
+
+export const getCustomerReport = (params?: DateParams) =>
+  api.get<CustomerReportDto>('/reports/customers', { params }).then((r) => r.data);
 
 export default api;
