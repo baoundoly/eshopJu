@@ -25,6 +25,10 @@ public class AppDbContext : DbContext
     public DbSet<Coupon> Coupons => Set<Coupon>();
     public DbSet<DiscountRule> DiscountRules => Set<DiscountRule>();
     public DbSet<OrderDiscount> OrderDiscounts => Set<OrderDiscount>();
+    public DbSet<ShippingZone> ShippingZones => Set<ShippingZone>();
+    public DbSet<ShippingZoneArea> ShippingZoneAreas => Set<ShippingZoneArea>();
+    public DbSet<ShippingMethod> ShippingMethods => Set<ShippingMethod>();
+    public DbSet<ShippingRate> ShippingRates => Set<ShippingRate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -96,6 +100,13 @@ public class AppDbContext : DbContext
             entity.Property(od => od.DiscountAmount).HasColumnType("decimal(18,2)");
         });
 
+        modelBuilder.Entity<ShippingRate>(entity =>
+        {
+            entity.Property(r => r.Rate).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.MinOrderAmount).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.MaxOrderAmount).HasColumnType("decimal(18,2)");
+        });
+
         // Seed data
         SeedData(modelBuilder);
     }
@@ -146,6 +157,47 @@ public class AppDbContext : DbContext
             new ProductVariant { Id = 17, ProductId = 5, Color = "Black",  JerseyType = JerseyType.NotApplicable, Size = "One Size", StockQuantity = 100, LowStockThreshold = 10, CreatedAt = now, UpdatedAt = now },
             new ProductVariant { Id = 18, ProductId = 6, Color = "White",  JerseyType = JerseyType.NotApplicable, Size = "Size 5",   StockQuantity = 60,  LowStockThreshold = 10, CreatedAt = now, UpdatedAt = now },
             new ProductVariant { Id = 19, ProductId = 7, Color = "White",  JerseyType = JerseyType.NotApplicable, Size = "One Size", StockQuantity = 200, LowStockThreshold = 10, CreatedAt = now, UpdatedAt = now }
+        );
+
+        // ── Shipping seed data ──────────────────────────────────────────────
+
+        modelBuilder.Entity<ShippingZone>().HasData(
+            new ShippingZone { Id = 1, Name = "Inside Dhaka", Description = "Dhaka city and surrounding areas", IsActive = true, CreatedAt = now, UpdatedAt = now },
+            new ShippingZone { Id = 2, Name = "Outside Dhaka", Description = "Rest of Bangladesh", IsActive = true, CreatedAt = now, UpdatedAt = now }
+        );
+
+        modelBuilder.Entity<ShippingZoneArea>().HasData(
+            // Inside Dhaka zone districts
+            new ShippingZoneArea { Id = 1, ZoneId = 1, District = "Dhaka", Thana = null, CreatedAt = now, UpdatedAt = now },
+            new ShippingZoneArea { Id = 2, ZoneId = 1, District = "Narayanganj", Thana = null, CreatedAt = now, UpdatedAt = now },
+            new ShippingZoneArea { Id = 3, ZoneId = 1, District = "Gazipur", Thana = null, CreatedAt = now, UpdatedAt = now },
+            // Outside Dhaka — major cities
+            new ShippingZoneArea { Id = 4, ZoneId = 2, District = "Chittagong", Thana = null, CreatedAt = now, UpdatedAt = now },
+            new ShippingZoneArea { Id = 5, ZoneId = 2, District = "Sylhet", Thana = null, CreatedAt = now, UpdatedAt = now },
+            new ShippingZoneArea { Id = 6, ZoneId = 2, District = "Rajshahi", Thana = null, CreatedAt = now, UpdatedAt = now },
+            new ShippingZoneArea { Id = 7, ZoneId = 2, District = "Khulna", Thana = null, CreatedAt = now, UpdatedAt = now },
+            new ShippingZoneArea { Id = 8, ZoneId = 2, District = "Barisal", Thana = null, CreatedAt = now, UpdatedAt = now },
+            new ShippingZoneArea { Id = 9, ZoneId = 2, District = "Rangpur", Thana = null, CreatedAt = now, UpdatedAt = now },
+            new ShippingZoneArea { Id = 10, ZoneId = 2, District = "Mymensingh", Thana = null, CreatedAt = now, UpdatedAt = now }
+        );
+
+        modelBuilder.Entity<ShippingMethod>().HasData(
+            new ShippingMethod { Id = 1, Name = "Home Delivery", Description = "Delivered to your doorstep", IsActive = true, CreatedAt = now, UpdatedAt = now },
+            new ShippingMethod { Id = 2, Name = "Courier Delivery", Description = "Delivered via courier service", IsActive = true, CreatedAt = now, UpdatedAt = now },
+            new ShippingMethod { Id = 3, Name = "Express Delivery", Description = "Same-day or next-day express delivery", IsActive = true, CreatedAt = now, UpdatedAt = now }
+        );
+
+        modelBuilder.Entity<ShippingRate>().HasData(
+            // Inside Dhaka – Home Delivery ৳60, free above ৳3000
+            new ShippingRate { Id = 1, ZoneId = 1, MethodId = 1, MinOrderAmount = null, MaxOrderAmount = 2999.99m, Rate = 60m, IsFreeShipping = false, CreatedAt = now, UpdatedAt = now },
+            new ShippingRate { Id = 2, ZoneId = 1, MethodId = 1, MinOrderAmount = 3000m, MaxOrderAmount = null,    Rate = 0m,  IsFreeShipping = true,  CreatedAt = now, UpdatedAt = now },
+            // Inside Dhaka – Express Delivery ৳120
+            new ShippingRate { Id = 3, ZoneId = 1, MethodId = 3, MinOrderAmount = null, MaxOrderAmount = null, Rate = 120m, IsFreeShipping = false, CreatedAt = now, UpdatedAt = now },
+            // Outside Dhaka – Courier Delivery ৳120, free above ৳5000
+            new ShippingRate { Id = 4, ZoneId = 2, MethodId = 2, MinOrderAmount = null, MaxOrderAmount = 4999.99m, Rate = 120m, IsFreeShipping = false, CreatedAt = now, UpdatedAt = now },
+            new ShippingRate { Id = 5, ZoneId = 2, MethodId = 2, MinOrderAmount = 5000m, MaxOrderAmount = null,    Rate = 0m,   IsFreeShipping = true,  CreatedAt = now, UpdatedAt = now },
+            // Outside Dhaka – Express Delivery ৳200
+            new ShippingRate { Id = 6, ZoneId = 2, MethodId = 3, MinOrderAmount = null, MaxOrderAmount = null, Rate = 200m, IsFreeShipping = false, CreatedAt = now, UpdatedAt = now }
         );
     }
 }

@@ -15,12 +15,15 @@ public class OrderService : IOrderService
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IDiscountService _discountService;
+    private readonly IShippingService _shippingService;
 
-    public OrderService(AppDbContext context, IConfiguration configuration, IDiscountService discountService)
+    public OrderService(AppDbContext context, IConfiguration configuration,
+        IDiscountService discountService, IShippingService shippingService)
     {
         _context = context;
         _configuration = configuration;
         _discountService = discountService;
+        _shippingService = shippingService;
     }
 
     public async Task<PagedResult<OrderDto>> GetOrdersAsync(int page = 1, int pageSize = 20, string? status = null)
@@ -29,6 +32,8 @@ public class OrderService : IOrderService
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
             .Include(o => o.Discounts)
+            .Include(o => o.ShippingZone)
+            .Include(o => o.ShippingMethod)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(status) &&
@@ -60,6 +65,8 @@ public class OrderService : IOrderService
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
             .Include(o => o.Discounts)
+            .Include(o => o.ShippingZone)
+            .Include(o => o.ShippingMethod)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         return order == null ? null : MapToDto(order);
@@ -71,6 +78,8 @@ public class OrderService : IOrderService
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
             .Include(o => o.Discounts)
+            .Include(o => o.ShippingZone)
+            .Include(o => o.ShippingMethod)
             .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
 
         return order == null ? null : MapToDto(order);
@@ -90,12 +99,15 @@ public class OrderService : IOrderService
             CustomerName = dto.CustomerName,
             CustomerPhone = dto.CustomerPhone,
             CustomerAddress = dto.CustomerAddress,
+            District = dto.District,
+            Thana = dto.Thana,
+            ShippingMethodId = dto.ShippingMethodId,
             PaymentMethod = dto.PaymentMethod,
             TransactionId = dto.TransactionId,
             Notes = dto.Notes,
             Status = OrderStatus.Pending,
             PaymentStatus = PaymentStatus.Pending,
-            DeliveryCharge = 60m,
+            DeliveryCharge = 60m, // default; overridden below after subtotal is known
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -178,6 +190,32 @@ public class OrderService : IOrderService
 
         order.SubTotal = subTotal;
 
+        // Resolve shipping zone + cost
+        if (!string.IsNullOrWhiteSpace(dto.District))
+        {
+            var zone = await _shippingService.GetZoneByAreaAsync(dto.District, dto.Thana);
+            if (zone != null)
+            {
+                order.ShippingZoneId = zone.Id;
+                if (dto.ShippingMethodId.HasValue)
+                    order.DeliveryCharge = await _shippingService.CalculateShippingCostAsync(
+                        zone.Id, dto.ShippingMethodId.Value, subTotal);
+                else
+                {
+                    // Auto-select cheapest available method for zone
+                    var options = await _shippingService.GetShippingOptionsAsync(
+                        new ShippingLookupRequestDto { District = dto.District, Thana = dto.Thana, OrderAmount = subTotal });
+                    if (options.Any())
+                    {
+                        var cheapest = options.OrderBy(o => o.ShippingCost).First();
+                        order.DeliveryCharge = cheapest.ShippingCost;
+                        order.ShippingMethodId = cheapest.MethodId;
+                        order.ShippingZoneId = cheapest.ZoneId;
+                    }
+                }
+            }
+        }
+
         // Run pricing engine
         var discountItems = dto.Items.Select((itemDto, idx) =>
         {
@@ -247,6 +285,8 @@ public class OrderService : IOrderService
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
             .Include(o => o.Discounts)
+            .Include(o => o.ShippingZone)
+            .Include(o => o.ShippingMethod)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return null;
@@ -264,6 +304,8 @@ public class OrderService : IOrderService
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
             .Include(o => o.Discounts)
+            .Include(o => o.ShippingZone)
+            .Include(o => o.ShippingMethod)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return null;
@@ -288,6 +330,8 @@ public class OrderService : IOrderService
         sb.AppendLine($"👤 *Customer:* {dto.CustomerName}");
         sb.AppendLine($"📞 *Phone:* {dto.CustomerPhone}");
         sb.AppendLine($"📍 *Address:* {dto.CustomerAddress}");
+        if (!string.IsNullOrWhiteSpace(dto.District))
+            sb.AppendLine($"🗺️ *Location:* {dto.District}");
         sb.AppendLine($"💳 *Payment:* {dto.PaymentMethod}");
         if (!string.IsNullOrWhiteSpace(dto.TransactionId))
             sb.AppendLine($"🔖 *Transaction ID:* {dto.TransactionId}");
@@ -298,6 +342,13 @@ public class OrderService : IOrderService
             sb.AppendLine($"  • {item.ProductName} ({item.Size}) x{item.Quantity} — ৳{item.UnitPrice:F0} each");
         }
         sb.AppendLine();
+        sb.AppendLine($"🧾 *Subtotal:* ৳{dto.SubTotal:F0}");
+        if (!string.IsNullOrWhiteSpace(dto.ShippingMethod))
+            sb.AppendLine($"🚚 *Shipping ({dto.ShippingMethod}):* ৳{dto.ShippingCost:F0}");
+        else
+            sb.AppendLine($"🚚 *Shipping:* ৳{dto.ShippingCost:F0}");
+        if (dto.DiscountAmount > 0)
+            sb.AppendLine($"🏷️ *Discount:* -৳{dto.DiscountAmount:F0}");
         sb.AppendLine($"💰 *Total: ৳{dto.TotalAmount:F0}*");
 
         var encodedMessage = WebUtility.UrlEncode(sb.ToString());
@@ -405,6 +456,12 @@ public class OrderService : IOrderService
             CouponCode = order.CouponCode,
             DeliveryCharge = order.DeliveryCharge,
             TotalAmount = order.TotalAmount,
+            District = order.District,
+            Thana = order.Thana,
+            ShippingZoneId = order.ShippingZoneId,
+            ShippingZoneName = order.ShippingZone?.Name,
+            ShippingMethodId = order.ShippingMethodId,
+            ShippingMethodName = order.ShippingMethod?.Name,
             Notes = order.Notes,
             Items = order.Items.Select(i => new OrderItemDto
             {

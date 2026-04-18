@@ -21,6 +21,12 @@ public class OrderDto
     public string? CouponCode { get; set; }
     public decimal DeliveryCharge { get; set; }
     public decimal TotalAmount { get; set; }
+    public string? District { get; set; }
+    public string? Thana { get; set; }
+    public int? ShippingZoneId { get; set; }
+    public string? ShippingZoneName { get; set; }
+    public int? ShippingMethodId { get; set; }
+    public string? ShippingMethodName { get; set; }
     public string? Notes { get; set; }
     public List<OrderItemDto> Items { get; set; } = new();
     public List<OrderDiscountDto> Discounts { get; set; } = new();
@@ -45,6 +51,9 @@ public class CreateOrderDto
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerPhone { get; set; } = string.Empty;
     public string CustomerAddress { get; set; } = string.Empty;
+    public string? District { get; set; }
+    public string? Thana { get; set; }
+    public int? ShippingMethodId { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
     public string? TransactionId { get; set; }
     public string? Notes { get; set; }
@@ -78,9 +87,14 @@ public class WhatsAppOrderMessageDto
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerPhone { get; set; } = string.Empty;
     public string CustomerAddress { get; set; } = string.Empty;
+    public string? District { get; set; }
+    public string? ShippingMethod { get; set; }
+    public decimal ShippingCost { get; set; }
     public string PaymentMethod { get; set; } = string.Empty;
     public string? TransactionId { get; set; }
     public List<WhatsAppOrderItemDto> Items { get; set; } = new();
+    public decimal SubTotal { get; set; }
+    public decimal DiscountAmount { get; set; }
     public decimal TotalAmount { get; set; }
 }
 

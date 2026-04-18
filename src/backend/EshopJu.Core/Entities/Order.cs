@@ -24,6 +24,14 @@ public class Order : BaseEntity
     public decimal DeliveryCharge { get; set; }
     public decimal TotalAmount { get; set; }
 
+    // Shipping details
+    public string? District { get; set; }
+    public string? Thana { get; set; }
+    public int? ShippingZoneId { get; set; }
+    public ShippingZone? ShippingZone { get; set; }
+    public int? ShippingMethodId { get; set; }
+    public ShippingMethod? ShippingMethod { get; set; }
+
     public string? Notes { get; set; }
 
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();

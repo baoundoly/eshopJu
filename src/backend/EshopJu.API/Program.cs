@@ -33,6 +33,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
+builder.Services.AddScoped<IShippingService, ShippingService>();
 
 // JWT Auth
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "eshopju-super-secret-key-2024-change-in-production";
