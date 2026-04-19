@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: eshopju-db
+    environment:
+      MYSQL_DATABASE: EshopJuDb
+      MYSQL_ROOT_PASSWORD: yourpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: EshopJu.API/Dockerfile
+    container_name: eshopju-api
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - DatabaseProvider=MySql
+      - ConnectionStrings__MySqlConnection=Server=db;Port=3306;Database=EshopJuDb;User=root;Password=yourpassword;
+      - Jwt__Secret=eshopju-super-secret-key-2024-change-in-production-must-be-32chars
+      - WhatsApp__PhoneNumber=8801XXXXXXXXX
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+      # NEXT_PUBLIC_* vars are inlined at build time — they MUST be build args,
+      # not just runtime environment variables.
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:5000/api
+        - NEXT_PUBLIC_WHATSAPP_NUMBER=8801XXXXXXXXX
+        - NEXT_PUBLIC_SITE_NAME=EshopJu
+        - NEXT_PUBLIC_SITE_URL=http://localhost:3000
+    container_name: eshopju-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+
