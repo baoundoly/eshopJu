@@ -75,12 +75,27 @@ export interface OrderItemDto {
   totalPrice: number;
 }
 
+export interface OrderDiscountDto {
+  source: string;
+  sourceLabel: string;
+  discountAmount: number;
+  description?: string;
+}
+
 export interface OrderDto {
   id: number;
   orderNumber: string;
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  district?: string;
+  thana?: string;
+  shippingZoneId?: number;
+  shippingZoneName?: string;
+  shippingMethodId?: number;
+  shippingMethodName?: string;
+  couponCode?: string;
+  discountAmount?: number;
   items: OrderItemDto[];
   subTotal: number;
   deliveryCharge: number;
@@ -90,7 +105,172 @@ export interface OrderDto {
   transactionId?: string;
   status: string; // "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled"
   notes?: string;
+  discounts?: OrderDiscountDto[];
   createdAt: string;
+}
+
+// ── Coupons ──────────────────────────────────────────────────────────────────
+
+export interface CouponDto {
+  id: number;
+  code: string;
+  name?: string;
+  description?: string;
+  discountType: string; // "Percentage" | "FixedAmount"
+  value: number;
+  maxDiscountAmount?: number;
+  minOrderAmount?: number;
+  usageLimit?: number;
+  usedCount: number;
+  perUserLimit?: number;
+  startDate?: string;
+  endDate?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface DiscountRuleDto {
+  id: number;
+  name: string;
+  description?: string;
+  discountType: string;
+  value: number;
+  maxDiscountAmount?: number;
+  minOrderAmount?: number;
+  appliesTo: string;
+  targetId?: number;
+  startDate?: string;
+  endDate?: string;
+  isActive: boolean;
+  priority: number;
+  isStackable: boolean;
+  createdAt: string;
+}
+
+export interface CouponValidationResultDto {
+  isValid: boolean;
+  errorMessage?: string;
+  code?: string;
+  name?: string;
+  discountAmount: number;
+}
+
+// ── Shipping ─────────────────────────────────────────────────────────────────
+
+export interface ShippingZoneAreaDto {
+  id: number;
+  district: string;
+  thana?: string;
+}
+
+export interface ShippingZoneDto {
+  id: number;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  areas: ShippingZoneAreaDto[];
+  createdAt: string;
+}
+
+export interface ShippingMethodDto {
+  id: number;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ShippingRateDto {
+  id: number;
+  zoneId: number;
+  zoneName: string;
+  methodId: number;
+  methodName: string;
+  minOrderAmount?: number;
+  maxOrderAmount?: number;
+  rate: number;
+  isFreeShipping: boolean;
+  createdAt: string;
+}
+
+export interface ShippingOptionDto {
+  methodId: number;
+  methodName: string;
+  zoneId: number;
+  zoneName: string;
+  shippingCost: number;
+  isFreeShipping: boolean;
+}
+
+// ── Inventory ─────────────────────────────────────────────────────────────────
+
+export interface InventoryVariantDto {
+  variantId: number;
+  productId: number;
+  productName: string;
+  color: string;
+  jerseyType: string;
+  size: string;
+  sku?: string;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  isLowStock: boolean;
+}
+
+export interface InventoryDashboardDto {
+  totalVariants: number;
+  lowStockVariants: number;
+  outOfStockVariants: number;
+  totalStockValue: number;
+  lowStockItems: InventoryVariantDto[];
+}
+
+export interface SupplierDto {
+  id: number;
+  name: string;
+  contactPhone?: string;
+  email?: string;
+  address?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface StockInItemDto {
+  productVariantId: number;
+  productName: string;
+  variantLabel: string;
+  quantity: number;
+  purchasePrice: number;
+}
+
+export interface StockInDto {
+  id: number;
+  supplierId?: number;
+  supplierName?: string;
+  notes?: string;
+  items: StockInItemDto[];
+  createdAt: string;
+}
+
+export interface StockMovementDto {
+  id: number;
+  productVariantId: number;
+  productName: string;
+  variantLabel: string;
+  quantity: number;
+  movementType: string;
+  referenceType: string;
+  referenceId?: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export interface AuthDto {

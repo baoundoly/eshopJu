@@ -3,20 +3,33 @@ import type {
   AuthDto,
   CartDto,
   Category,
+  CouponDto,
+  CouponValidationResultDto,
   CustomerReportDto,
   DashboardStats,
   DiscountReportDto,
+  DiscountRuleDto,
   ExtendedDashboardDto,
+  InventoryDashboardDto,
   InventoryReportDto,
+  InventoryVariantDto,
   OrderDto,
+  PagedResult,
   PaginatedProducts,
   Product,
   ProductFilters,
   ProductVariant,
   ProfitReportDto,
   SalesReportDto,
+  ShippingMethodDto,
+  ShippingOptionDto,
+  ShippingRateDto,
   ShippingReportDto,
+  ShippingZoneDto,
+  StockInDto,
+  StockMovementDto,
   StockMovementReportDto,
+  SupplierDto,
   TopProductsReportDto,
 } from './types';
 
@@ -69,6 +82,15 @@ export const getCategories = () =>
 export const getCategory = (id: number) =>
   api.get<Category>(`/categories/${id}`).then((r) => r.data);
 
+export const createCategory = (data: { name: string; description?: string; imageUrl?: string }) =>
+  api.post<Category>('/categories', data).then((r) => r.data);
+
+export const updateCategory = (id: number, data: { name: string; description?: string; imageUrl?: string; isActive: boolean }) =>
+  api.put<Category>(`/categories/${id}`, data).then((r) => r.data);
+
+export const deleteCategory = (id: number) =>
+  api.delete(`/categories/${id}`).then((r) => r.data);
+
 // Cart
 export const getCart = (sessionId?: string) =>
   api.get<CartDto>('/cart', { params: sessionId ? { sessionId } : {} }).then((r) => r.data);
@@ -96,10 +118,14 @@ export const createOrder = (data: {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  district?: string;
+  thana?: string;
+  shippingMethodId?: number;
   paymentMethod: number; // 0=BKash, 1=Nagad, 2=CashOnDelivery
   transactionId?: string;
   sessionId?: string;
   notes?: string;
+  couponCode?: string;
   items: { productId: number; variantId?: number; size: string; color?: string; jerseyType?: string; quantity: number }[];
 }) => api.post<OrderDto>('/orders', data).then((r) => r.data);
 
@@ -143,6 +169,100 @@ export const updateVariant = (productId: number, variantId: number, data: object
 
 export const deleteVariant = (productId: number, variantId: number) =>
   api.delete(`/admin/products/${productId}/variants/${variantId}`).then((r) => r.data);
+
+// Coupons (Admin)
+export const getCoupons = (params?: { page?: number; pageSize?: number }) =>
+  api.get<PagedResult<CouponDto>>('/coupons', { params }).then((r) => r.data);
+
+export const createCoupon = (data: object) =>
+  api.post<CouponDto>('/coupons', data).then((r) => r.data);
+
+export const updateCoupon = (id: number, data: object) =>
+  api.put<CouponDto>(`/coupons/${id}`, data).then((r) => r.data);
+
+export const deleteCoupon = (id: number) =>
+  api.delete(`/coupons/${id}`).then((r) => r.data);
+
+export const getDiscountRules = () =>
+  api.get<DiscountRuleDto[]>('/coupons/rules').then((r) => r.data);
+
+export const createDiscountRule = (data: object) =>
+  api.post<DiscountRuleDto>('/coupons/rules', data).then((r) => r.data);
+
+export const updateDiscountRule = (id: number, data: object) =>
+  api.put<DiscountRuleDto>(`/coupons/rules/${id}`, data).then((r) => r.data);
+
+export const deleteDiscountRule = (id: number) =>
+  api.delete(`/coupons/rules/${id}`).then((r) => r.data);
+
+export const validateCoupon = (code: string, orderAmount: number) =>
+  api.post<CouponValidationResultDto>('/coupons/validate', { code, orderAmount }).then((r) => r.data);
+
+// Shipping (Public)
+export const getShippingOptions = (district: string, thana: string | undefined, orderAmount: number) =>
+  api.post<ShippingOptionDto[]>('/shipping/options', { district, thana, orderAmount }).then((r) => r.data);
+
+// Shipping (Admin)
+export const getShippingZones = () =>
+  api.get<ShippingZoneDto[]>('/shipping/zones').then((r) => r.data);
+
+export const createShippingZone = (data: object) =>
+  api.post<ShippingZoneDto>('/shipping/zones', data).then((r) => r.data);
+
+export const updateShippingZone = (id: number, data: object) =>
+  api.put<ShippingZoneDto>(`/shipping/zones/${id}`, data).then((r) => r.data);
+
+export const deleteShippingZone = (id: number) =>
+  api.delete(`/shipping/zones/${id}`).then((r) => r.data);
+
+export const getShippingMethods = () =>
+  api.get<ShippingMethodDto[]>('/shipping/methods').then((r) => r.data);
+
+export const createShippingMethod = (data: object) =>
+  api.post<ShippingMethodDto>('/shipping/methods', data).then((r) => r.data);
+
+export const updateShippingMethod = (id: number, data: object) =>
+  api.put<ShippingMethodDto>(`/shipping/methods/${id}`, data).then((r) => r.data);
+
+export const deleteShippingMethod = (id: number) =>
+  api.delete(`/shipping/methods/${id}`).then((r) => r.data);
+
+export const getShippingRates = () =>
+  api.get<ShippingRateDto[]>('/shipping/rates').then((r) => r.data);
+
+export const createShippingRate = (data: object) =>
+  api.post<ShippingRateDto>('/shipping/rates', data).then((r) => r.data);
+
+export const updateShippingRate = (id: number, data: object) =>
+  api.put<ShippingRateDto>(`/shipping/rates/${id}`, data).then((r) => r.data);
+
+export const deleteShippingRate = (id: number) =>
+  api.delete(`/shipping/rates/${id}`).then((r) => r.data);
+
+// Inventory (Admin)
+export const getInventoryDashboard = () =>
+  api.get<InventoryDashboardDto>('/inventory/dashboard').then((r) => r.data);
+
+export const getInventory = (productId?: number) =>
+  api.get<InventoryVariantDto[]>('/inventory', { params: productId ? { productId } : {} }).then((r) => r.data);
+
+export const getSuppliers = () =>
+  api.get<SupplierDto[]>('/inventory/suppliers').then((r) => r.data);
+
+export const createSupplier = (data: object) =>
+  api.post<SupplierDto>('/inventory/suppliers', data).then((r) => r.data);
+
+export const getStockIns = (params?: { page?: number; pageSize?: number }) =>
+  api.get<PagedResult<StockInDto>>('/inventory/stock-in', { params }).then((r) => r.data);
+
+export const addStock = (data: object) =>
+  api.post<StockInDto>('/inventory/stock-in', data).then((r) => r.data);
+
+export const adjustStock = (variantId: number, quantityChange: number, notes?: string) =>
+  api.post<StockMovementDto>(`/inventory/variants/${variantId}/adjust`, { quantityChange, notes }).then((r) => r.data);
+
+export const getStockHistory = (params?: { variantId?: number; productId?: number; page?: number; pageSize?: number }) =>
+  api.get<PagedResult<StockMovementDto>>('/inventory/history', { params }).then((r) => r.data);
 
 // Reports
 type DateParams = { from?: string; to?: string };
