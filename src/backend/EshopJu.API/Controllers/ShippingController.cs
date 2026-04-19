@@ -52,6 +52,7 @@ public class ShippingController : ControllerBase
 
     [HttpPost("zones")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(typeof(ShippingZoneDto), 201)]
     public async Task<IActionResult> CreateZone([FromBody] CreateShippingZoneDto dto)
     {
@@ -61,6 +62,7 @@ public class ShippingController : ControllerBase
 
     [HttpPut("zones/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(typeof(ShippingZoneDto), 200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateZone(int id, [FromBody] CreateShippingZoneDto dto)
@@ -72,6 +74,7 @@ public class ShippingController : ControllerBase
 
     [HttpDelete("zones/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> DeleteZone(int id)
@@ -92,6 +95,7 @@ public class ShippingController : ControllerBase
 
     [HttpPost("methods")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(typeof(ShippingMethodDto), 201)]
     public async Task<IActionResult> CreateMethod([FromBody] CreateShippingMethodDto dto)
     {
@@ -101,6 +105,7 @@ public class ShippingController : ControllerBase
 
     [HttpPut("methods/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(typeof(ShippingMethodDto), 200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateMethod(int id, [FromBody] CreateShippingMethodDto dto)
@@ -112,6 +117,7 @@ public class ShippingController : ControllerBase
 
     [HttpDelete("methods/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> DeleteMethod(int id)
@@ -133,6 +139,7 @@ public class ShippingController : ControllerBase
 
     [HttpPost("rates")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(typeof(ShippingRateDto), 201)]
     public async Task<IActionResult> CreateRate([FromBody] CreateShippingRateDto dto)
     {
@@ -142,6 +149,7 @@ public class ShippingController : ControllerBase
 
     [HttpPut("rates/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(typeof(ShippingRateDto), 200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateRate(int id, [FromBody] CreateShippingRateDto dto)
@@ -153,6 +161,7 @@ public class ShippingController : ControllerBase
 
     [HttpDelete("rates/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageShipping")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> DeleteRate(int id)

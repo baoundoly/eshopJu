@@ -31,7 +31,8 @@ public class AuthService : IAuthService
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return null;
 
-        return GenerateAuthDto(user);
+        var permissions = await GetUserPermissionsAsync(user.Id);
+        return GenerateAuthDto(user, permissions);
     }
 
     public async Task<AuthDto> RegisterAsync(RegisterDto dto)
@@ -54,10 +55,19 @@ public class AuthService : IAuthService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return GenerateAuthDto(user);
+        return GenerateAuthDto(user, Enumerable.Empty<string>());
     }
 
-    private AuthDto GenerateAuthDto(User user)
+    private async Task<IEnumerable<string>> GetUserPermissionsAsync(int userId)
+    {
+        return await _context.UserRoleAssignments
+            .Where(a => a.UserId == userId)
+            .SelectMany(a => a.Role.RolePermissions.Select(rp => rp.Permission.Name))
+            .Distinct()
+            .ToListAsync();
+    }
+
+    private AuthDto GenerateAuthDto(User user, IEnumerable<string> permissions)
     {
         var secret = _configuration["Jwt:Secret"]
             ?? throw new InvalidOperationException("JWT secret is not configured.");
@@ -68,7 +78,7 @@ public class AuthService : IAuthService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim("id", user.Id.ToString()),
@@ -77,6 +87,9 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.Name, user.Name),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        foreach (var perm in permissions)
+            claims.Add(new Claim("permission", perm));
 
         var token = new JwtSecurityToken(
             issuer: issuer,

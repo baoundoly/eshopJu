@@ -8,6 +8,7 @@ namespace EshopJu.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
+[Authorize(Policy = "ViewReports")]
 public class ReportsController : ControllerBase
 {
     private readonly IReportService _reportService;

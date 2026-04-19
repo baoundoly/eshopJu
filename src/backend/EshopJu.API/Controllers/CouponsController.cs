@@ -55,6 +55,7 @@ public class CouponsController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageCoupons")]
     [ProducesResponseType(typeof(PagedResult<CouponDto>), 200)]
     public async Task<IActionResult> GetCoupons(
         [FromQuery] int page = 1,
@@ -66,6 +67,7 @@ public class CouponsController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageCoupons")]
     [ProducesResponseType(typeof(CouponDto), 201)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponDto dto)
@@ -83,6 +85,7 @@ public class CouponsController : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageCoupons")]
     [ProducesResponseType(typeof(CouponDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -102,6 +105,7 @@ public class CouponsController : ControllerBase
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageCoupons")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> DeleteCoupon(int id)
@@ -115,6 +119,7 @@ public class CouponsController : ControllerBase
 
     [HttpGet("rules")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageCoupons")]
     [ProducesResponseType(typeof(List<DiscountRuleDto>), 200)]
     public async Task<IActionResult> GetRules()
     {
@@ -124,6 +129,7 @@ public class CouponsController : ControllerBase
 
     [HttpPost("rules")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageCoupons")]
     [ProducesResponseType(typeof(DiscountRuleDto), 201)]
     public async Task<IActionResult> CreateRule([FromBody] CreateDiscountRuleDto dto)
     {
@@ -133,6 +139,7 @@ public class CouponsController : ControllerBase
 
     [HttpPut("rules/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageCoupons")]
     [ProducesResponseType(typeof(DiscountRuleDto), 200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateRule(int id, [FromBody] CreateDiscountRuleDto dto)
@@ -144,6 +151,7 @@ public class CouponsController : ControllerBase
 
     [HttpDelete("rules/{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ManageCoupons")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> DeleteRule(int id)

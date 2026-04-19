@@ -8,6 +8,7 @@ namespace EshopJu.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
+[Authorize(Policy = "ManageInventory")]
 public class InventoryController : ControllerBase
 {
     private readonly IInventoryService _inventoryService;

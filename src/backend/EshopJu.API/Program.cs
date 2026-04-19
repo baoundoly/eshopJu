@@ -35,6 +35,8 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
 builder.Services.AddScoped<IShippingService, ShippingService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
 // JWT Auth
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "eshopju-super-secret-key-2024-change-in-production";
@@ -51,7 +53,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CreateProduct",   p => p.RequireClaim("permission", "CREATE_PRODUCT"));
+    options.AddPolicy("EditProduct",     p => p.RequireClaim("permission", "EDIT_PRODUCT"));
+    options.AddPolicy("DeleteProduct",   p => p.RequireClaim("permission", "DELETE_PRODUCT"));
+    options.AddPolicy("ViewOrder",       p => p.RequireClaim("permission", "VIEW_ORDER"));
+    options.AddPolicy("ManageOrder",     p => p.RequireClaim("permission", "MANAGE_ORDER"));
+    options.AddPolicy("ManageCustomer",  p => p.RequireClaim("permission", "MANAGE_CUSTOMER"));
+    options.AddPolicy("ManageInventory", p => p.RequireClaim("permission", "MANAGE_INVENTORY"));
+    options.AddPolicy("ManageCoupons",   p => p.RequireClaim("permission", "MANAGE_COUPONS"));
+    options.AddPolicy("ViewReports",     p => p.RequireClaim("permission", "VIEW_REPORTS"));
+    options.AddPolicy("ManageShipping",  p => p.RequireClaim("permission", "MANAGE_SHIPPING"));
+    options.AddPolicy("ManageRoles",     p => p.RequireClaim("permission", "MANAGE_ROLES"));
+});
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -100,6 +115,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
+    await RbacSeeder.SeedAsync(db);
 }
 
 if (app.Environment.IsDevelopment())
@@ -113,5 +129,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
 

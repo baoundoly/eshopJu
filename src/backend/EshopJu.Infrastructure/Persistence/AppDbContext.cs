@@ -29,6 +29,10 @@ public class AppDbContext : DbContext
     public DbSet<ShippingZoneArea> ShippingZoneAreas => Set<ShippingZoneArea>();
     public DbSet<ShippingMethod> ShippingMethods => Set<ShippingMethod>();
     public DbSet<ShippingRate> ShippingRates => Set<ShippingRate>();
+    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<UserRoleAssignment> UserRoleAssignments => Set<UserRoleAssignment>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -105,6 +109,31 @@ public class AppDbContext : DbContext
             entity.Property(r => r.Rate).HasColumnType("decimal(18,2)");
             entity.Property(r => r.MinOrderAmount).HasColumnType("decimal(18,2)");
             entity.Property(r => r.MaxOrderAmount).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<UserRoleAssignment>(entity =>
+        {
+            entity.ToTable("UserRoles");
+            entity.HasIndex(u => new { u.UserId, u.RoleId }).IsUnique();
+            entity.HasOne(u => u.User).WithMany(u => u.RoleAssignments).HasForeignKey(u => u.UserId);
+            entity.HasOne(u => u.Role).WithMany(r => r.UserAssignments).HasForeignKey(u => u.RoleId);
+        });
+
+        modelBuilder.Entity<RolePermission>(entity =>
+        {
+            entity.HasIndex(r => new { r.RoleId, r.PermissionId }).IsUnique();
+            entity.HasOne(r => r.Role).WithMany(r => r.RolePermissions).HasForeignKey(r => r.RoleId);
+            entity.HasOne(r => r.Permission).WithMany(p => p.RolePermissions).HasForeignKey(r => r.PermissionId);
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasIndex(r => r.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<Permission>(entity =>
+        {
+            entity.HasIndex(p => p.Name).IsUnique();
         });
 
         // Seed data

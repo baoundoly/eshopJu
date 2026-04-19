@@ -58,6 +58,7 @@ public class ProductsController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "CreateProduct")]
     [ProducesResponseType(typeof(ProductDto), 201)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto dto)
@@ -68,6 +69,7 @@ public class ProductsController : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "EditProduct")]
     [ProducesResponseType(typeof(ProductDto), 200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto dto)
@@ -81,6 +83,7 @@ public class ProductsController : ControllerBase
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "DeleteProduct")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> DeleteProduct(int id)

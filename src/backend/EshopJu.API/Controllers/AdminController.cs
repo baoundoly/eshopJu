@@ -72,6 +72,7 @@ public class AdminController : ControllerBase
     // ── Orders passthrough (admin-scoped) ───────────────────────────────────
 
     [HttpGet("orders")]
+    [Authorize(Policy = "ViewOrder")]
     [ProducesResponseType(typeof(PagedResult<OrderDto>), 200)]
     public async Task<IActionResult> GetOrders(
         [FromQuery] int page = 1,
@@ -83,6 +84,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpPut("orders/{id:int}/status")]
+    [Authorize(Policy = "ManageOrder")]
     [ProducesResponseType(typeof(OrderDto), 200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDto dto)
@@ -95,6 +97,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpPut("orders/{id:int}/verify-payment")]
+    [Authorize(Policy = "ManageOrder")]
     [ProducesResponseType(typeof(OrderDto), 200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> VerifyPayment(int id, [FromBody] VerifyPaymentDto dto)
