@@ -30,6 +30,7 @@ public class AppDbContext : DbContext
     public DbSet<ShippingMethod> ShippingMethods => Set<ShippingMethod>();
     public DbSet<ShippingRate> ShippingRates => Set<ShippingRate>();
     public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Slide> Slides => Set<Slide>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<UserRoleAssignment> UserRoleAssignments => Set<UserRoleAssignment>();

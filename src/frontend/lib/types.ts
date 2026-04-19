@@ -506,3 +506,23 @@ export interface InventoryVariantStats {
   isLowStock: boolean;
 }
 
+export interface SlideDto {
+  id: number;
+  title: string;
+  subtitle?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  linkLabel?: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface UserProfileDto {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  createdAt: string;
+}
+

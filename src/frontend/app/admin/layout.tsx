@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingBag, BarChart3, FolderOpen, Tag, Warehouse, Truck } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, BarChart3, FolderOpen, Tag, Warehouse, Truck, Images } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
+  { href: '/admin/slides', label: 'Home Slides', icon: Images },
   { href: '/admin/coupons', label: 'Coupons', icon: Tag },
   { href: '/admin/inventory', label: 'Inventory', icon: Warehouse },
   { href: '/admin/shipping', label: 'Shipping', icon: Truck },

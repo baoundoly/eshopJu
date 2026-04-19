@@ -26,11 +26,13 @@ import type {
   ShippingRateDto,
   ShippingReportDto,
   ShippingZoneDto,
+  SlideDto,
   StockInDto,
   StockMovementDto,
   StockMovementReportDto,
   SupplierDto,
   TopProductsReportDto,
+  UserProfileDto,
 } from './types';
 
 const api = axios.create({
@@ -292,5 +294,32 @@ export const getTopProductsReport = (params?: DateParams & { top?: number }) =>
 
 export const getCustomerReport = (params?: DateParams) =>
   api.get<CustomerReportDto>('/reports/customers', { params }).then((r) => r.data);
+
+// Slides (public)
+export const getActiveSlides = () =>
+  api.get<SlideDto[]>('/slides').then((r) => r.data);
+
+// Slides (admin)
+export const getAllSlides = () =>
+  api.get<SlideDto[]>('/slides/all').then((r) => r.data);
+
+export const createSlide = (data: object) =>
+  api.post<SlideDto>('/slides', data).then((r) => r.data);
+
+export const updateSlide = (id: number, data: object) =>
+  api.put<SlideDto>(`/slides/${id}`, data).then((r) => r.data);
+
+export const deleteSlide = (id: number) =>
+  api.delete(`/slides/${id}`).then((r) => r.data);
+
+// Me – profile
+export const getMyProfile = () =>
+  api.get<UserProfileDto>('/me/profile').then((r) => r.data);
+
+export const updateMyProfile = (data: { name?: string; phone?: string }) =>
+  api.put<UserProfileDto>('/me/profile', data).then((r) => r.data);
+
+export const changeMyPassword = (data: { currentPassword: string; newPassword: string }) =>
+  api.put('/me/password', data).then((r) => r.data);
 
 export default api;
