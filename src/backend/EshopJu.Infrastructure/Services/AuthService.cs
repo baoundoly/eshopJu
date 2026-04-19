@@ -58,6 +58,54 @@ public class AuthService : IAuthService
         return GenerateAuthDto(user, Enumerable.Empty<string>());
     }
 
+    public async Task<UserProfileDto?> GetProfileAsync(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || !user.IsActive) return null;
+        return MapToProfileDto(user);
+    }
+
+    public async Task<UserProfileDto?> UpdateProfileAsync(int userId, UpdateProfileDto dto)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || !user.IsActive) return null;
+
+        if (!string.IsNullOrWhiteSpace(dto.Name))
+            user.Name = dto.Name;
+
+        if (!string.IsNullOrWhiteSpace(dto.Phone))
+            user.Phone = dto.Phone;
+
+        user.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return MapToProfileDto(user);
+    }
+
+    public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto dto)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || !user.IsActive) return false;
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            return false;
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    private static UserProfileDto MapToProfileDto(User user) => new()
+    {
+        Id = user.Id,
+        Name = user.Name,
+        Email = user.Email,
+        Phone = user.Phone,
+        CreatedAt = user.CreatedAt
+    };
+
     private async Task<IEnumerable<string>> GetUserPermissionsAsync(int userId)
     {
         return await _context.UserRoleAssignments
