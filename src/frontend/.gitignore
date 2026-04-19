@@ -30,8 +30,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (local overrides are never committed)
+.env
+.env.local
+.env.*.local
+.env.production
+# allow the example template to be committed
+!.env.example
 
 # vercel
 .vercel

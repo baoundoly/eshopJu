@@ -1,36 +1,68 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Environment Setup
 
-First, run the development server:
+All frontend configuration is done via environment variables.
+
+### Local Development
+
+Copy the example file and fill in your values:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp src/frontend/.env.example src/frontend/.env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then edit `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Default | Description |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:5000/api` | Base URL of the EshopJu .NET backend API |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | `8801XXXXXXXXX` | Shop's WhatsApp number (international format, no `+`) |
+| `NEXT_PUBLIC_SITE_NAME` | `EshopJu` | Shop name shown in the browser tab |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Public URL of the storefront |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> **Note:** All `NEXT_PUBLIC_*` variables are inlined into the JavaScript bundle at **build time**. Changing them after a build has no effect — you must rebuild.
 
-## Learn More
+### Docker / Docker Compose
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+docker compose up --build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Environment variables are passed as **build arguments** in `docker-compose.yml`. To customise them without editing the file, use an override:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# docker-compose.override.yml
+services:
+  frontend:
+    build:
+      args:
+        NEXT_PUBLIC_API_URL: https://api.yourshop.com/api
+        NEXT_PUBLIC_WHATSAPP_NUMBER: "880XXXXXXXXXX"
+        NEXT_PUBLIC_SITE_URL: https://yourshop.com
+```
 
-## Deploy on Vercel
+### Production / Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Set variables in the Vercel project settings (Settings → Environment Variables). They are injected automatically at build time.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Getting Started
+
+```bash
+cd src/frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser.
+
+## Backend
+
+```bash
+cd src/backend
+dotnet run --project EshopJu.API/EshopJu.API.csproj
+```
+
+The API runs on `http://localhost:5000` by default.
