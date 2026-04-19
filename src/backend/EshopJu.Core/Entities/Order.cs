@@ -7,6 +7,8 @@ public class Order : BaseEntity
     public string OrderNumber { get; set; } = string.Empty;
     public int? UserId { get; set; }
     public User? User { get; set; }
+    public int? CustomerId { get; set; }
+    public Customer? Customer { get; set; }
 
     // Guest info
     public string CustomerName { get; set; } = string.Empty;

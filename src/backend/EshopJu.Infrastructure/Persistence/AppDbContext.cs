@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     public DbSet<ShippingZoneArea> ShippingZoneAreas => Set<ShippingZoneArea>();
     public DbSet<ShippingMethod> ShippingMethods => Set<ShippingMethod>();
     public DbSet<ShippingRate> ShippingRates => Set<ShippingRate>();
+    public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<UserRoleAssignment> UserRoleAssignments => Set<UserRoleAssignment>();
@@ -109,6 +110,21 @@ public class AppDbContext : DbContext
             entity.Property(r => r.Rate).HasColumnType("decimal(18,2)");
             entity.Property(r => r.MinOrderAmount).HasColumnType("decimal(18,2)");
             entity.Property(r => r.MaxOrderAmount).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<Customer>(entity =>
+        {
+            entity.HasIndex(c => c.Phone).IsUnique();
+            entity.Property(c => c.TotalSpent).HasColumnType("decimal(18,2)");
+            entity.Ignore(c => c.IsRecurring);
+            entity.HasOne(c => c.User)
+                  .WithMany()
+                  .HasForeignKey(c => c.UserId)
+                  .OnDelete(DeleteBehavior.SetNull);
+            entity.HasMany(c => c.Orders)
+                  .WithOne(o => o.Customer)
+                  .HasForeignKey(o => o.CustomerId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<UserRoleAssignment>(entity =>

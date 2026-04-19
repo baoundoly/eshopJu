@@ -249,6 +249,9 @@ public class OrderService : IOrderService
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
+        // Auto-upsert customer record by phone
+        await UpsertCustomerAsync(order, userId);
+
         // Write discount audit rows
         await _discountService.WriteOrderDiscountsAsync(order.Id, discountPreview);
 
@@ -422,6 +425,93 @@ public class OrderService : IOrderService
             RecentOrders = recentOrders,
             TopProducts = topProducts
         };
+    }
+
+    public async Task<List<OrderDto>> GetOrdersForUserAsync(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return new List<OrderDto>();
+
+        var orders = await _context.Orders
+            .Include(o => o.Items).ThenInclude(i => i.Product)
+            .Include(o => o.Discounts)
+            .Include(o => o.ShippingZone)
+            .Include(o => o.ShippingMethod)
+            .Where(o => o.UserId == userId ||
+                        o.CustomerPhone == user.Phone)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+
+        return orders.Select(MapToDto).ToList();
+    }
+
+    public async Task<OrderDto?> GetOrderByNumberForUserAsync(string orderNumber, int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return null;
+
+        var order = await _context.Orders
+            .Include(o => o.Items).ThenInclude(i => i.Product)
+            .Include(o => o.Discounts)
+            .Include(o => o.ShippingZone)
+            .Include(o => o.ShippingMethod)
+            .FirstOrDefaultAsync(o =>
+                o.OrderNumber == orderNumber &&
+                (o.UserId == userId || o.CustomerPhone == user.Phone));
+
+        return order == null ? null : MapToDto(order);
+    }
+
+    private async Task UpsertCustomerAsync(Order order, int? userId)
+    {
+        var phone = order.CustomerPhone;
+        if (string.IsNullOrWhiteSpace(phone)) return;
+
+        var customer = await _context.Customers
+            .FirstOrDefaultAsync(c => c.Phone == phone);
+
+        if (customer == null)
+        {
+            customer = new Core.Entities.Customer
+            {
+                Phone = phone,
+                Name = order.CustomerName,
+                Email = null,
+                Address = order.CustomerAddress,
+                District = order.District,
+                Thana = order.Thana,
+                TotalOrders = 1,
+                TotalSpent = order.TotalAmount,
+                LastOrderDate = order.CreatedAt,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            customer.Name = order.CustomerName;
+            if (!string.IsNullOrWhiteSpace(order.CustomerAddress))
+                customer.Address = order.CustomerAddress;
+            if (!string.IsNullOrWhiteSpace(order.District))
+                customer.District = order.District;
+            if (!string.IsNullOrWhiteSpace(order.Thana))
+                customer.Thana = order.Thana;
+            if (userId.HasValue && customer.UserId == null)
+                customer.UserId = userId;
+            customer.TotalOrders += 1;
+            customer.TotalSpent += order.TotalAmount;
+            customer.LastOrderDate = order.CreatedAt;
+            customer.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+
+        // Link this order to the customer record
+        order.CustomerId = customer.Id;
+        order.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
     }
 
     private async Task<string> GenerateOrderNumberAsync()

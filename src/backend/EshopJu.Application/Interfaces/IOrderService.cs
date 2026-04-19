@@ -12,4 +12,6 @@ public interface IOrderService
     Task<OrderDto?> VerifyPaymentAsync(int id, VerifyPaymentDto dto);
     Task<string> GenerateWhatsAppLinkAsync(WhatsAppOrderMessageDto dto);
     Task<DashboardStatsDto> GetDashboardStatsAsync();
+    Task<List<OrderDto>> GetOrdersForUserAsync(int userId);
+    Task<OrderDto?> GetOrderByNumberForUserAsync(string orderNumber, int userId);
 }
