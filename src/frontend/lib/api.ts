@@ -92,26 +92,25 @@ export const deleteCategory = (id: number) =>
   api.delete(`/categories/${id}`).then((r) => r.data);
 
 // Cart
+const sessionHeaders = (sessionId?: string) =>
+  sessionId ? { headers: { 'X-Session-Id': sessionId } } : {};
+
 export const getCart = (sessionId?: string) =>
-  api.get<CartDto>('/cart', { params: sessionId ? { sessionId } : {} }).then((r) => r.data);
+  api.get<CartDto>('/cart', sessionHeaders(sessionId)).then((r) => r.data);
 
 export const addToCart = (
   item: { productId: number; variantId?: number; size: string; color?: string; jerseyType?: string; quantity: number },
   sessionId?: string,
-) => api.post<CartDto>('/cart', { ...item, sessionId }).then((r) => r.data);
+) => api.post<CartDto>('/cart/items', item, sessionHeaders(sessionId)).then((r) => r.data);
 
 export const updateCartItem = (itemId: number, quantity: number, sessionId?: string) =>
-  api.put<CartDto>(`/cart/${itemId}`, { quantity, sessionId }).then((r) => r.data);
+  api.put<CartDto>(`/cart/items/${itemId}`, { quantity }, sessionHeaders(sessionId)).then((r) => r.data);
 
 export const removeFromCart = (itemId: number, sessionId?: string) =>
-  api
-    .delete<CartDto>(`/cart/${itemId}`, { params: sessionId ? { sessionId } : {} })
-    .then((r) => r.data);
+  api.delete<CartDto>(`/cart/items/${itemId}`, sessionHeaders(sessionId)).then((r) => r.data);
 
 export const clearCart = (sessionId?: string) =>
-  api
-    .delete<CartDto>('/cart', { params: sessionId ? { sessionId } : {} })
-    .then((r) => r.data);
+  api.delete<CartDto>('/cart', sessionHeaders(sessionId)).then((r) => r.data);
 
 // Orders
 export const createOrder = (data: {
