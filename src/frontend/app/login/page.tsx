@@ -39,10 +39,10 @@ export default function CustomerLoginPage() {
     try {
       const data = await login(email, password);
       localStorage.setItem('token', data.token);
-      setUser({ name: data.user.name, email: data.user.email, role: data.user.role, token: data.token });
-      toast.success(`Welcome back, ${data.user.name}!`);
+      setUser({ name: data.name, email: data.email, role: data.role, token: data.token });
+      toast.success(`Welcome back, ${data.name}!`);
       // Customers go to home; admins are told to use admin login
-      if (data.user.role === 'admin') {
+      if (data.role === 'admin') {
         router.push('/admin/dashboard');
       } else {
         router.push('/');
@@ -73,8 +73,8 @@ export default function CustomerLoginPage() {
     try {
       const data = await register(regName, regEmail, regPhone, regPassword);
       localStorage.setItem('token', data.token);
-      setUser({ name: data.user.name, email: data.user.email, role: data.user.role, token: data.token });
-      toast.success(`Welcome, ${data.user.name}! Account created.`);
+      setUser({ name: data.name, email: data.email, role: data.role, token: data.token });
+      toast.success(`Welcome, ${data.name}! Account created.`);
       router.push('/');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';

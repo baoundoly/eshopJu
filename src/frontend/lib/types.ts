@@ -275,13 +275,10 @@ export interface PagedResult<T> {
 
 export interface AuthDto {
   token: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    phone?: string;
-    role: 'admin' | 'customer';
-  };
+  name: string;
+  email: string;
+  role: 'admin' | 'customer';
+  expiresAt: string;
 }
 
 export interface DashboardStats {

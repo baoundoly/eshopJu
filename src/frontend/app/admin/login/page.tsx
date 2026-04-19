@@ -24,13 +24,13 @@ export default function AdminLoginPage() {
     setLoading(true);
     try {
       const data = await login(email, password);
-      if (data.user.role !== 'admin') {
+      if (data.role !== 'admin') {
         setError('Access denied. This portal is for administrators only.');
         return;
       }
       localStorage.setItem('token', data.token);
-      setUser({ name: data.user.name, email: data.user.email, role: data.user.role, token: data.token });
-      toast.success(`Welcome, ${data.user.name}!`);
+      setUser({ name: data.name, email: data.email, role: data.role, token: data.token });
+      toast.success(`Welcome, ${data.name}!`);
       router.push('/admin/dashboard');
     } catch {
       setError('Invalid credentials. Please try again.');
